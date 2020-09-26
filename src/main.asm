@@ -1,8 +1,8 @@
     include "rom/header.asm"
-    
+    include "msx.inc"
 
 main:
-    call $c0
+    call BIOS_BEEP
     jp main
 
     include "rom/tail.asm"
