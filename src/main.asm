@@ -18,28 +18,28 @@ main:
     ; for screen 2
     ld hl, BANK_PATTERN_0
     ld de, SCR2_CHARPATTERN
-    ld bc, 24
+    ld bc, 8*TILES
     call BIOS_LDIRVM
     ld hl, BANK_PATTERN_0
     ld de, SCR2_CHARPATTERN + 8*32*8
-    ld bc, 24
+    ld bc, 8*TILES
     call BIOS_LDIRVM
     ld hl, BANK_PATTERN_0
     ld de, SCR2_CHARPATTERN + 16*32*8
-    ld bc, 24
+    ld bc, 8*TILES
     call BIOS_LDIRVM    
 
     ld hl, BANK_COLOR_0
     ld de, SCR2_PIXELCOLOR
-    ld bc, 24
+    ld bc, 8*TILES
     call BIOS_LDIRVM    
     ld hl, BANK_COLOR_0
     ld de, SCR2_PIXELCOLOR + 8*32*8
-    ld bc, 24
+    ld bc, 8*TILES
     call BIOS_LDIRVM    
     ld hl, BANK_COLOR_0
     ld de, SCR2_PIXELCOLOR + 16*32*8
-    ld bc, 24
+    ld bc, 8*TILES
     call BIOS_LDIRVM    
 
     ld hl, SCREEN_MAP
