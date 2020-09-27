@@ -50,4 +50,17 @@ main:
 loop:
     jp loop
 
+create_map:
+    ld hl, SCREEN_MAP
+    
+create_line:
+
+    jp NZ, create_line
+    ret
+
+
+
+map: BLOCK 32*24*8
+
+
     include "rom/tail.asm"
