@@ -2,6 +2,8 @@
     include "bios.inc"
     include "graphics.asm"
 
+TILES equ 6
+
 main:
     ; set colors
     ld A, COL_WHITE
@@ -14,30 +16,32 @@ main:
     ; set screen 2
     call BIOS_INIGRP
 
+    call build_map
+
     ; load data into vram. Triplicating tiles and color definitions
     ; for screen 2
-    ld hl, BANK_PATTERN_0
+    ld hl, BRICKS
     ld de, SCR2_CHARPATTERN
     ld bc, 8*TILES
     call BIOS_LDIRVM
-    ld hl, BANK_PATTERN_0
+    ld hl, BRICKS
     ld de, SCR2_CHARPATTERN + 8*32*8
     ld bc, 8*TILES
     call BIOS_LDIRVM
-    ld hl, BANK_PATTERN_0
+    ld hl, BRICKS
     ld de, SCR2_CHARPATTERN + 16*32*8
     ld bc, 8*TILES
     call BIOS_LDIRVM    
 
-    ld hl, BANK_COLOR_0
+    ld hl, BRICK_COLORS
     ld de, SCR2_PIXELCOLOR
     ld bc, 8*TILES
     call BIOS_LDIRVM    
-    ld hl, BANK_COLOR_0
+    ld hl, BRICK_COLORS
     ld de, SCR2_PIXELCOLOR + 8*32*8
     ld bc, 8*TILES
     call BIOS_LDIRVM    
-    ld hl, BANK_COLOR_0
+    ld hl, BRICK_COLORS
     ld de, SCR2_PIXELCOLOR + 16*32*8
     ld bc, 8*TILES
     call BIOS_LDIRVM    
@@ -49,18 +53,5 @@ main:
 
 loop:
     jp loop
-
-create_map:
-    ld hl, SCREEN_MAP
-    
-create_line:
-
-    jp NZ, create_line
-    ret
-
-
-
-
-
 
     include "rom/tail.asm"

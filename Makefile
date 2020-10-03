@@ -13,3 +13,6 @@ clean:
 
 mkdirs:
 	mkdir -p $(BUILD)
+
+run:
+	$(EMU) $(ROM)
