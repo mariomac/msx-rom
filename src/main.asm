@@ -1,6 +1,6 @@
     include "rom/header.asm"
     include "bios.inc"
-    include "graficos.asm"
+    include "graphics.asm"
 
 main:
     ; set colors
@@ -60,7 +60,7 @@ create_line:
 
 
 
-map: BLOCK 32*24*8
+
 
 
     include "rom/tail.asm"
