@@ -1,3 +1,5 @@
+    include "bios.inc"
+
 BRICK:
     DG ###_####
     DG ###_####
@@ -7,57 +9,74 @@ BRICK:
     DG #######_
     DG #######_
     DG ________
+BRICK_END:
 
 BRICK_COLORS:
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
-    DB 0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0,0xf0
+    DB 0x98,0x98,0x98,0x98,0x98,0x98,0x98,0x98
+BRICK_COLORS_END:
 
-// from the above brick, builds the brick animations
-build_bricks:
-    ; first, copies the original brick
-    ld bc, 8
+MAP:
+    DB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+    DB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+
+MAP_END:
+
+init_graphics:
+    ; load brick tiles definitions into vram (3 banks)
     ld hl, BRICK
-    ld de, brick_tiles
-    ldir   ; ld (hl), (de) ; incs hl & de, and dec bc until bc = 0
-    
-    ; now, let's build the brick rotating frames
-    ld b, 8
-    ld ix, BRICK         ; ix source, iy dest
-    ld iy, brick_tiles+8
-_next_brick_frame:
-    djnz _build_brick_frame
-    ret
-_build_brick_frame:
-    push bc
-    ld b, 8
-_build_brick_line:    
-    ld a, (ix) ; loads a brick line and rotates it
-    rlca
-    ld (iy), a
-    inc ix
-    inc iy
-    djnz _build_brick_line
-    ; for the next brick animation, we set the source
-    ; as the last written brick (current iy - 8)
-    push iy
-    pop  ix
-    dec ix
-    dec ix
-    dec ix
-    dec ix
-    dec ix
-    dec ix
-    dec ix
-    dec ix
+    ld de, SCR2_CHARPATTERN+8
+    ld bc, BRICK_END - BRICK
+    call BIOS_LDIRVM
+    ld hl, BRICK
+    ld de, SCR2_CHARPATTERN+32*8*8+8
+    ld bc, BRICK_END - BRICK
+    call BIOS_LDIRVM
+    ld hl, BRICK
+    ld de, SCR2_CHARPATTERN+32*16*8+8
+    ld bc, BRICK_END - BRICK
+    call BIOS_LDIRVM
 
-    pop bc
-    jp _next_brick_frame   
+    ; brick colors
+    ld hl, BRICK_COLORS
+    ld de, SCR2_PIXELCOLOR+8
+    ld bc, BRICK_COLORS_END - BRICK_COLORS
+    call BIOS_LDIRVM
+    ld hl, BRICK_COLORS
+    ld de, SCR2_PIXELCOLOR+256*8+8
+    ld bc, BRICK_COLORS_END - BRICK_COLORS
+    call BIOS_LDIRVM
+    ld hl, BRICK_COLORS
+    ld de, SCR2_PIXELCOLOR+512*8+8
+    ld bc, BRICK_COLORS_END - BRICK_COLORS
+    call BIOS_LDIRVM
 
+    ; load map
+    ld hl, MAP
+    ld de, SCR2_CHARPOS
+    ld bc, MAP_END - MAP
+    call BIOS_LDIRVM
+    ret 
     
 
