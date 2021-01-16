@@ -1,81 +1,40 @@
     include "bios.inc"
-
-BRICK:
-    DG ###_####
-    DG ###_####
-    DG ###_####
-    DG ________
-    DG #######_
-    DG #######_
-    DG #######_
-    DG ________
-BRICK_END:
-
-BRICK_COLORS:
-    DB 0x98,0x98,0x98,0x98,0x98,0x98,0x98,0x98
-BRICK_COLORS_END:
-
-MAP:
-    DB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-    DB 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-
-MAP_END:
+    include "assets/map.asm"
+    include "assets/tiles.asm"
 
 init_graphics:
     ; load brick tiles definitions into vram (3 banks)
-    ld hl, BRICK
-    ld de, SCR2_CHARPATTERN+8
-    ld bc, BRICK_END - BRICK
+    ld hl, BANK_PATTERN_0
+    ld de, SCR2_CHARPATTERN
+    ld bc, 8*32*24
     call BIOS_LDIRVM
-    ld hl, BRICK
-    ld de, SCR2_CHARPATTERN+32*8*8+8
-    ld bc, BRICK_END - BRICK
+    ld hl, BANK_PATTERN_1
+    ld de, SCR2_CHARPATTERN+32*8*8
+    ld bc, 8*32*24
     call BIOS_LDIRVM
-    ld hl, BRICK
-    ld de, SCR2_CHARPATTERN+32*16*8+8
-    ld bc, BRICK_END - BRICK
+    ld hl, BANK_PATTERN_2
+    ld de, SCR2_CHARPATTERN+32*16*8
+    ld bc, 8*32*24
     call BIOS_LDIRVM
 
     ; brick colors
-    ld hl, BRICK_COLORS
-    ld de, SCR2_PIXELCOLOR+8
-    ld bc, BRICK_COLORS_END - BRICK_COLORS
+    ld hl, BANK_COLOR_0
+    ld de, SCR2_PIXELCOLOR
+    ld bc, 256*8
     call BIOS_LDIRVM
-    ld hl, BRICK_COLORS
-    ld de, SCR2_PIXELCOLOR+256*8+8
-    ld bc, BRICK_COLORS_END - BRICK_COLORS
+    ld hl, BANK_COLOR_1
+    ld de, SCR2_PIXELCOLOR+256*8
+    ld bc, 256*8
     call BIOS_LDIRVM
-    ld hl, BRICK_COLORS
-    ld de, SCR2_PIXELCOLOR+512*8+8
-    ld bc, BRICK_COLORS_END - BRICK_COLORS
+    ld hl, BANK_COLOR_2
+    ld de, SCR2_PIXELCOLOR+512*8
+    ld bc, 256*8
     call BIOS_LDIRVM
 
     ; load map
-    ld hl, MAP
+    ld hl, SCREEN_0_0
     ld de, SCR2_CHARPOS
-    ld bc, MAP_END - MAP
+    ld bc, 32*24
     call BIOS_LDIRVM
     ret 
     

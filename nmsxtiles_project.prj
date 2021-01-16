@@ -1,0 +1,9 @@
+PROJECT
+SCREEN
+nmsxtiles_screen.scr
+TILES
+nmsxtiles_tiles.til
+ONEBANK
+PALETTE
+nmsxtiles_palette.pal
+END
