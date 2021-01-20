@@ -61,18 +61,6 @@ init_graphics:
     call BIOS_WRTVDP
 
     ; load sprite attributes (TODO: move to a refresh function)
-    ld hl, amancio_sprite_attrs
-    ld de, SCR2_SPRATTRIB
-    ld bc, 4
-    call BIOS_LDIRMV
-
-
-    ; load sprites
-    ld hl, AMANCIO
-    ld de, SCR2_SPRPATTERN
-    ld bc, 32
-    call BIOS_LDIRVM
-
     ld hl, AMANCIO
     ld de, SCR2_SPRPATTERN
     ld bc, 32
