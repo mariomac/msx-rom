@@ -1,3 +1,7 @@
 {
+    "files.associations": {
+        "*.asm": "z80-macroasm",
+        "*.as": "z80-macroasm",
+    },
     "z80-asm-meter.platform": "msx"
 }

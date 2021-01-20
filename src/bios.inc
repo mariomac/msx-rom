@@ -2047,7 +2047,7 @@ VDPSTATUS: equ 0x99  //VDP Status Registers
      | +--------------- DG  Digitized mode. Sets the color bus to the input (#1) or output mode (#0). Always #0 on MSX1
      +----------------- Always #0
 
-	Control Register 1: (R/W) All MSX [VDP(1) see ADDR_RG1SAV]
+	Control Register 1: (R/W) All MSX [VDP(1) see ADDR_RG1SAV] 
      7 6 5 4 3 2 1 0
      | | | | | | | +--- MAG Sprite enlarging. #1 enables enlarged sprites. #0 disabled
      | | | | | | +----- SI  Sprite size. #0:8x8. #1:16x16
