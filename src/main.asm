@@ -1,27 +1,19 @@
     include "rom/header.asm"
     include "bios.inc"
     include "graphics.asm"
-
+    include "loop.asm"
     include "vars.asm"
 
 main:
-    ; set colors
-    ld A, COL_WHITE
-    ld (ADDR_FORCLR), A
-    ld A, COL_BLACK
-    ld (ADDR_BAKCLR), A
-    ld (ADDR_BDRCLR), A
-    call BIOS_CHGCLR
-
-    ; set screen 2
-
-    call BIOS_INIGRP
+    ld a, 0
+    ld (ADDR_CLIKSW), a
+    call init_vars
     call init_graphics
 
 loop:
-    ;halt
+    halt
+    call refresh_graphics    
+    call move_amancio
     jp loop
 
     include "rom/tail.asm"
-
-

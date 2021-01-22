@@ -4,6 +4,16 @@
     include "assets/tiles.asm"
 
 init_graphics:
+    ; set colors
+    ld A, COL_WHITE
+    ld (ADDR_FORCLR), A
+    ld A, COL_BLACK
+    ld (ADDR_BAKCLR), A
+    ld (ADDR_BDRCLR), A
+    call BIOS_CHGCLR
+
+    ; set screen 2
+    call BIOS_INIGRP
     ; inhibit screen display
     call BIOS_DISSCR
 
@@ -46,19 +56,22 @@ init_graphics:
     ld c, 1 ; registro 1 (es más eficiente hacer ld bc, ...)
     call BIOS_WRTVDP
 
-    ; load sprite attributes (TODO: move to a refresh function)
+    ; load sprite attributes
     ld hl, AMANCIO
     ld de, SCR2_SPRPATTERN
     ld bc, AMANCIO_END-AMANCIO
     call BIOS_LDIRVM
 
-    ld hl, amancio_sprite_attrs
-    ld de, SCR2_SPRATTRIB
-    ld bc, amancio_sprite_attrs_end-amancio_sprite_attrs
-    call BIOS_LDIRVM
+    call refresh_graphics
 
     ; re-enable screen display
     call BIOS_ENASCR
     ret 
-    
+
+refresh_graphics:
+    ld hl, amancio_sprite_attrs
+    ld de, SCR2_SPRATTRIB
+    ld bc, amancio_sprite_attrs_end-amancio_sprite_attrs
+    call BIOS_LDIRVM
+    ret
 

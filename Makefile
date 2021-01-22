@@ -6,7 +6,7 @@ BUILD=build
 ROM=$(BUILD)/main.rom
 
 build: mkdirs
-	$(AS) --msg=all --nofakes --raw=$(ROM) $(MAINFILE)
+	$(AS) --sym=build/symbols.txt --msg=all --nofakes --raw=$(ROM) $(MAINFILE)
 
 clean:
 	rm -rf build
