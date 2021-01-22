@@ -21,6 +21,6 @@ init_vars:
     ld hl, amancio_sprite_attrs_vals
     ld bc, amancio_sprite_attrs_end-amancio_sprite_attrs
     ldir
-    ld de, amancio_collision_ptr_val
+    ld de, (amancio_collision_ptr_val)
     ld (amancio_collision_ptr), de
     ret
