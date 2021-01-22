@@ -5,8 +5,8 @@
     include "vars.asm"
 
 main:
-    ld a, 0
-    ld (ADDR_CLIKSW), a
+    xor a
+    ld (ADDR_CLIKSW), a ; disable keyboard click
     call init_vars
     call init_graphics
 
