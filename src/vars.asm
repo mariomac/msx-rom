@@ -10,10 +10,15 @@ amancio_sprite_attrs_vals:
     DB _start_tile_top*8, _start_tile_left*8, 0, 9
     DB _start_tile_top*8, _start_tile_left*8, 4, 14    
 amancio_sprite_attrs_vals_end:
+
 ; pointer to the top-left tile map, corresponding to the amancio position
 amancio_collision_ptr: equ amancio_sprite_attrs_end+1
 amancio_collision_ptr_val:
     DW SCREEN_0_0 + _start_tile_top * 32 + _start_tile_left ; top-left
+
+; timing of amancio animation
+amancio_frame_timing: equ amancio_collision_ptr+1
+amancio_frame_timing_mask: equ %111
 
 ; Moves ROM read-only values to main RAM
 init_vars:

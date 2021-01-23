@@ -31,6 +31,7 @@ _check_down:
     and KEY_DOWN
     jr nz, _check_left
     call _try_down
+    call animate_amancio
     ret
 _check_left:
     ld a, c
@@ -45,7 +46,20 @@ _check_right:
     call _try_right
     ret
 
-
+animate_amancio:
+    ld a, (amancio_frame_timing)                    ; check timing for updating animation
+    inc a
+    ld (amancio_frame_timing), a
+    and amancio_frame_timing_mask
+    ret nz
+    ld a, (amancio_sprite_attrs + 2)                ; increase frame
+    add AMANCIO_FRAME_PATTERNS
+    and AMANCIO_FRAMES*AMANCIO_FRAME_PATTERNS-1 
+    ld (amancio_sprite_attrs + 2), a
+    add 4
+    and AMANCIO_FRAMES*AMANCIO_FRAME_PATTERNS-1 
+    ld (amancio_sprite_attrs + 6), a
+    ret
 
 ; input: bc, cols, rows coordinates
 ; output: nz flag is there is collision
@@ -144,7 +158,6 @@ __try_down_free_move:
     ld (amancio_sprite_attrs), bc
     ld (amancio_sprite_attrs+4), bc
     ret
-
 
 _try_left:
     res 0, e 
