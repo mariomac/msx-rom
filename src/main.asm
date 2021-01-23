@@ -2,6 +2,7 @@
     include "bios.inc"
     include "graphics.asm"
     include "amancio.asm"
+    include "worker.asm"
     include "vars.asm"
 
 main:
@@ -14,6 +15,7 @@ loop:
     halt
     call refresh_graphics    
     call move_amancio
+    call update_workers
     jp loop
 
     include "rom/tail.asm"

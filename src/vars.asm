@@ -21,14 +21,27 @@ amancio_frame_timing: equ amancio_collision_ptr+1
 amancio_frame_timing_mask: equ %111
 amancio_frame_num: equ amancio_frame_timing+1
 
+; workers array of structs
+workers: equ amancio_frame_num+1
+_workers_end: EQU workers+(workers_init_vals_end-workers_init_vals)
+
+next_variable: equ _workers_end
+
 ; Moves ROM read-only values to main RAM
 init_vars:
     ld a, 0
     ld (amancio_frame_num), a
+    
     ld de, amancio_sprite_attrs
     ld hl, amancio_sprite_attrs_vals
     ld bc, amancio_sprite_attrs_end-amancio_sprite_attrs
     ldir
+    
     ld de, (amancio_collision_ptr_val)
     ld (amancio_collision_ptr), de
+
+    ld de, workers
+    ld hl, workers_init_vals
+    ld bc, workers_init_vals_end-workers_init_vals
+    ldir
     ret
