@@ -31,6 +31,7 @@ _check_down:
     and KEY_DOWN
     jr nz, _check_left
     call _try_down
+    ld c, AMANCIO_DOWN_PATTERN
     call animate_amancio
     ret
 _check_left:
@@ -38,26 +39,34 @@ _check_left:
     and KEY_LEFT
     jr nz, _check_right
     call _try_left
+    ld c, AMANCIO_LEFT_PATTERN
+    call animate_amancio
     ret
 _check_right:
     ld a, c
     and KEY_RIGHT
     ret nz
     call _try_right
+    ld c, AMANCIO_RIGHT_PATTERN
+    call animate_amancio
     ret
 
+; input c: amancio direction base frame
 animate_amancio:
     ld a, (amancio_frame_timing)                    ; check timing for updating animation
     inc a
     ld (amancio_frame_timing), a
     and amancio_frame_timing_mask
     ret nz
-    ld a, (amancio_sprite_attrs + 2)                ; increase frame
+    ld a, (amancio_frame_num)                       ; update offset frame
     add AMANCIO_FRAME_PATTERNS
     and AMANCIO_FRAMES*AMANCIO_FRAME_PATTERNS-1 
+    ld (amancio_frame_num), a
+    add c                                           ; add offset to base and write attrs
     ld (amancio_sprite_attrs + 2), a
     add 4
     and AMANCIO_FRAMES*AMANCIO_FRAME_PATTERNS-1 
+    add c
     ld (amancio_sprite_attrs + 6), a
     ret
 

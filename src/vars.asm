@@ -19,9 +19,12 @@ amancio_collision_ptr_val:
 ; timing of amancio animation
 amancio_frame_timing: equ amancio_collision_ptr+1
 amancio_frame_timing_mask: equ %111
+amancio_frame_num: equ amancio_frame_timing+1
 
 ; Moves ROM read-only values to main RAM
 init_vars:
+    ld a, 0
+    ld (amancio_frame_num), a
     ld de, amancio_sprite_attrs
     ld hl, amancio_sprite_attrs_vals
     ld bc, amancio_sprite_attrs_end-amancio_sprite_attrs
