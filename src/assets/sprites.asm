@@ -1,9 +1,10 @@
 AMANCIO_FRAMES: equ 4
 AMANCIO_FRAME_PATTERNS: equ 8
 
-AMANCIO_DOWN_PATTERN: equ 0
-AMANCIO_RIGHT_PATTERN: equ 32
+AMANCIO_DOWN_PATTERN: equ 0   
+AMANCIO_RIGHT_PATTERN: equ 32 
 AMANCIO_LEFT_PATTERN: equ 64
+AMANCIO_UP_PATTERN: equ 96
 
 
 AMANCIO:
@@ -148,6 +149,54 @@ AMANCIO_LEFT:
     DB $01,$03,$1F,$3C,$38,$1C,$06,$0F
     DB $00,$38,$FE,$9F,$0F,$0F,$1E,$00
     DB $80,$B0,$B8,$38,$30,$20,$40,$C0
+AMANCIO_UP:
+    ; --- Slot 0
+    ; color 9
+    DB $00,$0F,$1F,$3F,$0F,$00,$00,$00
+    DB $18,$01,$00,$00,$00,$E0,$60,$00
+    DB $00,$F0,$F8,$FC,$F0,$00,$00,$00
+    DB $18,$80,$00,$00,$01,$03,$00,$00
+    ; color 14
+    DB $00,$00,$00,$40,$F0,$FF,$FF,$7F
+    DB $07,$60,$FE,$EF,$0F,$0E,$0E,$01
+    DB $00,$00,$00,$02,$0F,$FF,$FF,$FE
+    DB $E0,$07,$7D,$FC,$FC,$F8,$F0,$F8
+    ; 
+    ; --- Slot 1
+    ; color 9
+    DB $0F,$1F,$3F,$0F,$00,$00,$00,$18
+    DB $01,$00,$00,$00,$00,$C0,$40,$00
+    DB $F0,$F8,$FC,$F0,$00,$00,$00,$0C
+    DB $80,$00,$00,$00,$00,$03,$02,$00
+    ; color 14
+    DB $00,$00,$40,$F0,$FF,$FF,$7F,$07
+    DB $60,$FE,$FF,$DF,$1F,$0F,$1C,$0F
+    DB $00,$00,$02,$0F,$FF,$FF,$FE,$F0
+    DB $02,$7F,$FF,$FB,$F8,$F0,$18,$70
+    ; 
+    ; --- Slot 2
+    ; color 9
+    DB $00,$0F,$1F,$3F,$0F,$00,$00,$00
+    DB $18,$01,$00,$00,$80,$C0,$00,$00
+    DB $00,$F0,$F8,$FC,$F0,$00,$00,$00
+    DB $18,$80,$00,$00,$00,$07,$06,$00
+    ; color 14
+    DB $00,$00,$00,$40,$F0,$FF,$FF,$7F
+    DB $07,$E0,$BE,$3F,$3F,$1F,$0F,$1F
+    DB $00,$00,$00,$02,$0F,$FF,$FF,$FE
+    DB $E0,$06,$7F,$F7,$F0,$70,$70,$80
+    ; 
+    ; --- Slot 2
+    ; color 9
+    DB $00,$0F,$1F,$3F,$0F,$00,$00,$00
+    DB $18,$01,$00,$00,$80,$C0,$00,$00
+    DB $00,$F0,$F8,$FC,$F0,$00,$00,$00
+    DB $18,$80,$00,$00,$00,$07,$06,$00
+    ; color 14
+    DB $00,$00,$00,$40,$F0,$FF,$FF,$7F
+    DB $07,$E0,$BE,$3F,$3F,$1F,$0F,$1F
+    DB $00,$00,$00,$02,$0F,$FF,$FF,$FE
+    DB $E0,$06,$7F,$F7,$F0,$70,$70,$80
 
 AMANCIO_END:
 
@@ -261,4 +310,60 @@ EEEE.99999999999
 ...EEEEEEE......
 ...EEEE.E.EEEE..
 ....EEEE..EEE...
+*/
+
+/* backup up
+!type
+msx1
+#Slot 0
+................
+....99999999....
+...9999999999...
+.E999999999999E.
+EEEE99999999EEEE
+EEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEE
+.EEEEEEEEEEEEEE.
+...99EEEEEE99...
+.EE....99....EEE
+EEEEEEE..EEEEE.E
+EEE.EEEEEEEEEE..
+....EEEEEEEEEE.9
+999.EEE.EEEEE.99
+.99.EEE.EEEE....
+.......EEEEEE...
+#Slot 1
+....99999999....
+...9999999999...
+.E999999999999E.
+EEEE99999999EEEE
+EEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEE
+.EEEEEEEEEEEEEE.
+...99EEEEEEE99..
+.EE....99.....E.
+EEEEEEE..EEEEEEE
+EEEEEEEEEEEEEEEE
+EE.EEEEEEEEEE.EE
+...EEEEEEEEEE...
+99..EEEEEEEE..99
+.9.EEE.....EE.9.
+....EEEE.EEE....
+#Slot 2
+................
+....99999999....
+...9999999999...
+.E999999999999E.
+EEEE99999999EEEE
+EEEEEEEEEEEEEEEE
+EEEEEEEEEEEEEEEE
+.EEEEEEEEEEEEEE.
+...99EEEEEE99...
+.EE....99....EEE
+EEEEEEE..EEEEE.E
+EEE.EEEEEEEEEE..
+....EEEEEEEEEE.9
+999.EEE.EEEEE.99
+.99.EEE.EEEE....
+.......EEEEEE...
 */

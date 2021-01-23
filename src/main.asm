@@ -1,7 +1,7 @@
     include "rom/header.asm"
     include "bios.inc"
     include "graphics.asm"
-    include "loop.asm"
+    include "amancio.asm"
     include "vars.asm"
 
 main:

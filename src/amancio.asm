@@ -25,6 +25,8 @@ _check_up:
     and KEY_UP
     jr nz, _check_down
     call _try_up
+    ld c, AMANCIO_UP_PATTERN
+    call animate_amancio    
     ret
 _check_down:
     ld a, c
