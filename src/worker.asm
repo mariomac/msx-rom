@@ -14,6 +14,7 @@ WORKER_FLAG_LEFTSIDE:   equ 2
 ; constants
 WORKER_BOX_WIDTH: equ 16
 WORKER_BOX_HEIGHT: equ 8
+MINIMUM_HURRY_INCREASE: equ 1
 
 LWORKER_FRAME1_TILES: db 2, 3, 4, 5
 LWORKER_FRAME2_TILES: DB 10, 11, 12, 13
@@ -47,7 +48,7 @@ workers_init_vals:
     DB 24, 144, 0, 60, %111, 0  ; worker 9
     DB 80, 144, 0, 250, %11111, 0  ; worker 10
     DB 136, 144, 0, 50, %111, 0  ; worker 11
-    DB 192, 144, 10, 40, %11, 0  ; worker 12
+    DB 192, 144, 0, 1, %1, 0  ; worker 12
 workers_init_vals_end:
 
 update_workers:
@@ -64,13 +65,11 @@ __worker_loop:
     ld (ix+WORKER_STEP), a
     cp (ix+WORKER_HURRY)
     jp nz, __update_worker_mach
-    xor a                   ; reset step to 0
-    ld (ix+WORKER_STEP), a
+    call _on_step_reached_hurry
     ld a, (ix+WORKER_FLAGS)
     xor 1<<WORKER_FLAG_FRAME_HEAD
     ld (ix+WORKER_FLAGS), a
 __update_worker_mach:
-    ; machine frame is 8 times faster than head
     ld a, (ix+WORKER_STEP)
     and (ix+WORKER_MACH_SPEED)
     jp nz, __update_worker
@@ -97,6 +96,51 @@ _nextworker:
     pop hl
     pop de
     pop ix
+    ret
+
+; update worker hurry
+; increase shirts
+; ix: address of the worker
+; modifies a
+_on_step_reached_hurry:
+    push bc
+    xor a
+    ld (ix+WORKER_STEP), a
+    ld a, (ix+WORKER_HURRY) ; hurry is increased by 12.5% (or the minimum)
+    ld b, a
+    srl a
+    srl a
+    srl a
+    cp MINIMUM_HURRY_INCREASE
+    jp nc, __increase_hurry
+    ld a, MINIMUM_HURRY_INCREASE
+__increase_hurry:    
+    add b
+    cp b ; if a < b, it means overflow. Setting to 255 (max) 
+    jp nc, __update_machine_speed
+    ld a, 255
+__update_machine_speed:
+    ld (ix+WORKER_HURRY), a
+    ; machine frame is 8 times faster than head
+    ld b, 0
+__increase_machine_mask:
+    sll b   ; shifts left and inserts 1 until mask is larger than hurry
+    cp b
+    jp z, __divide_mach_mask
+    jp nc, __increase_machine_mask
+__divide_mach_mask:    
+    ; then divide machine speed by 16 (min 1)
+    ld a, b
+    srl a
+    srl a
+    srl a
+    srl a
+    cp 0
+    jp nz, __store_machine_speed_mask:
+    ld a, 1
+__store_machine_speed_mask:
+    ld (ix + WORKER_MACH_SPEED), a
+    pop bc
     ret
 
 ; input: ix: address to the worker
