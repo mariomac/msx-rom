@@ -111,6 +111,14 @@ _on_step_reached_hurry:
     srl a
     srl a
     srl a
+    call _set_hurry
+    pop bc
+    ret
+
+
+; a : new hurry
+; modifies b
+_set_hurry:    
     cp MINIMUM_HURRY_INCREASE
     jp nc, __increase_hurry
     ld a, MINIMUM_HURRY_INCREASE
@@ -140,7 +148,6 @@ __divide_mach_mask:
     ld a, 1
 __store_machine_speed_mask:
     ld (ix + WORKER_MACH_SPEED), a
-    pop bc
     ret
 
 ; input: ix: address to the worker
