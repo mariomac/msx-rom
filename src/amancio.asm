@@ -6,6 +6,46 @@ KEY_SPACE:  equ  %00000001
 
 CONTROLS_KEY_MATRIX: equ 8
 
+update_amancio_status:
+    push ix
+    ld a, (amancio_status)
+    bit AMANCIO_STATUS_WHIP_BIT, a ; if whip is inactive, move amancio normally
+    call z, move_amancio
+    ; if whip is active, update whip status
+    ld a, (amancio_direction)
+__case_whip_down:    
+            cp AMANCIO_STATUS_DIR_DOWN
+            jp nz, __case_whip_right
+            call _amancio_whip_down
+            jp _update_amancio_status_end
+__case_whip_right:
+            cp AMANCIO_STATUS_DIR_RIGHT
+            jp nz, __case_whip_left
+            call _amancio_whip_right
+            jp _update_amancio_status_end
+__case_whip_left:
+            cp AMANCIO_STATUS_DIR_LEFT
+            jp nz, __default
+            call _amancio_whip_left
+            jp _update_amancio_status_end
+__default:
+            call _amancio_whip_up
+_update_amancio_status_end:
+    pop ix
+    ret
+
+_amancio_whip_up:
+    ret
+_amancio_whip_down:
+    ret
+_amancio_whip_left:
+    ret
+_amancio_whip_right:
+    ld a, (amancio_status)            ; set animation to whip, and reset frame
+    res AMANCIO_STATUS_WHIP_BIT, a
+    ld (amancio_status), a
+    ret
+
 ; modifies a, c
 ; checks:
 ; summing 16 to the direction we are going
@@ -18,7 +58,11 @@ move_amancio:
     ; check space
     and KEY_SPACE
     jr nz, _check_up
-    ; TODO: space action
+    ld a, (amancio_status)            ; set animation to whip, and reset frame
+    set AMANCIO_STATUS_WHIP_BIT, a
+    ld (amancio_status), a
+    xor a
+    ld (amancio_frame_timing), a
     ret
 _check_up:
     ld a, c
@@ -27,6 +71,8 @@ _check_up:
     call _try_up
     ld c, AMANCIO_UP_PATTERN
     call animate_amancio    
+    ld a, AMANCIO_STATUS_DIR_UP                ; set amancio direction
+    ld (amancio_direction), a
     ret
 _check_down:
     ld a, c
@@ -35,6 +81,8 @@ _check_down:
     call _try_down
     ld c, AMANCIO_DOWN_PATTERN
     call animate_amancio
+    ld a, AMANCIO_STATUS_DIR_DOWN              ; set amancio direction
+    ld (amancio_direction), a
     ret
 _check_left:
     ld a, c
@@ -43,6 +91,8 @@ _check_left:
     call _try_left
     ld c, AMANCIO_LEFT_PATTERN
     call animate_amancio
+    ld a, AMANCIO_STATUS_DIR_LEFT              ; set amancio direction
+    ld (amancio_direction), a
     ret
 _check_right:
     ld a, c
@@ -51,6 +101,8 @@ _check_right:
     call _try_right
     ld c, AMANCIO_RIGHT_PATTERN
     call animate_amancio
+    ld a, AMANCIO_STATUS_DIR_RIGHT              ; set amancio direction
+    ld (amancio_direction), a
     ret
 
 ; input c: amancio direction base frame
@@ -71,6 +123,10 @@ animate_amancio:
     add c
     ld (amancio_sprite_attrs + 6), a
     ret
+
+animate_amancio_whip:
+    ret
+
 
 ; input: bc, cols, rows coordinates
 ; output: nz flag is there is collision

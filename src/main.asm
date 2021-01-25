@@ -14,7 +14,7 @@ main:
 loop:
     halt
     call refresh_graphics    
-    call move_amancio
+    call update_amancio_status
     call update_workers
     jp loop
 

@@ -18,19 +18,32 @@ amancio_collision_ptr_val:
 
 ; timing of amancio animation
 amancio_frame_timing: equ amancio_collision_ptr+1
-amancio_frame_timing_mask: equ %111
+AMANCIO_FRAME_TIMING_MASK: equ %111          ; walking frame
+AMANCIO_WHIP_PREPARE_TIME: equ %11
+AMANCIO_WHIP_TIME:  equ %1111
+
 amancio_frame_num: equ amancio_frame_timing+1
 
 ; workers array of structs
 workers: equ amancio_frame_num+1
 _workers_end: EQU workers+(workers_init_vals_end-workers_init_vals)
 
-next_variable: equ _workers_end
+amancio_direction: equ _workers_end+1 ; down-right-up-left
+AMANCIO_STATUS_DIR_DOWN       equ 0
+AMANCIO_STATUS_DIR_RIGHT      equ 1
+AMANCIO_STATUS_DIR_UP:        equ 2
+AMANCIO_STATUS_DIR_LEFT       equ 3
 
+amancio_status: equ amancio_direction+1
+AMANCIO_STATUS_WHIP_BIT       equ 0
+
+next_var: equ amancio_status+1
+ 
 ; Moves ROM read-only values to main RAM
 init_vars:
     ld a, 0
     ld (amancio_frame_num), a
+    ld (amancio_status), a
     
     ld de, amancio_sprite_attrs
     ld hl, amancio_sprite_attrs_vals
