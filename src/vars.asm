@@ -5,10 +5,12 @@ _start_tile_left: equ 10
 ; public vars
 main_ram: equ 0xE000
 amancio_sprite_attrs: equ main_ram
-amancio_sprite_attrs_end: equ amancio_sprite_attrs + 8
+amancio_sprite_attrs_end: equ amancio_sprite_attrs + 12 ; 3 sprites
 amancio_sprite_attrs_vals:
     DB _start_tile_top*8, _start_tile_left*8, 0, 9
-    DB _start_tile_top*8, _start_tile_left*8, 4, 14    
+    DB _start_tile_top*8, _start_tile_left*8, 4, 14
+    ; whip sprite
+    DB 0, 0, 0, 15
 amancio_sprite_attrs_vals_end:
 
 ; pointer to the top-left tile map, corresponding to the amancio position

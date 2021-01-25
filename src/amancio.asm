@@ -10,6 +10,7 @@ CONTROLS_KEY_MATRIX: equ 8
 AMANCIO_FRAME_TIMING_MASK: equ %111          ; walking frame
 AMANCIO_WHIP_PREPARE_TIME_MASK: equ %11
 AMANCIO_WHIP_TIME_MASK:  equ %1111
+WHIP_COLOR: equ 6
 
 WHIP_ANIMATION_RIGHT:
     ; frame 0
@@ -21,6 +22,17 @@ WHIP_ANIMATION_RIGHT:
     db 16, 0
     db AMANCIO_WHIP_RIGHT_PATTERN_BODY_2
     db AMANCIO_WHIP_RIGHT_PATTERN_WHIP_2
+    db AMANCIO_WHIP_TIME_MASK
+WHIP_ANIMATION_LEFT:
+    ; frame 0
+    db 16, 0
+    db AMANCIO_WHIP_LEFT_PATTERN_BODY_1
+    db AMANCIO_WHIP_LEFT_PATTERN_WHIP_1
+    db AMANCIO_WHIP_PREPARE_TIME_MASK
+    ; frame 1
+    db -16, 0
+    db AMANCIO_WHIP_LEFT_PATTERN_BODY_2
+    db AMANCIO_WHIP_LEFT_PATTERN_WHIP_2
     db AMANCIO_WHIP_TIME_MASK
 
 ; above structs fields (as offsets)
@@ -44,34 +56,26 @@ __whip_active:
 __case_whip_down:    
             cp AMANCIO_STATUS_DIR_DOWN
             jp nz, __case_whip_right
-            call _amancio_whip_down
+            ;call _amancio_whip_down
             jp _update_amancio_status_end
 __case_whip_right:
             cp AMANCIO_STATUS_DIR_RIGHT
             jp nz, __case_whip_left
-            call _amancio_whip_right
+            ld ix, WHIP_ANIMATION_RIGHT
+            call animate_amancio_whip
             jp _update_amancio_status_end
 __case_whip_left:
             cp AMANCIO_STATUS_DIR_LEFT
             jp nz, __default
-            call _amancio_whip_left
+            ld ix, WHIP_ANIMATION_LEFT
+            call animate_amancio_whip
             jp _update_amancio_status_end
 __default:
-            call _amancio_whip_up
+            ;call _amancio_whip_up
 _update_amancio_status_end:
     pop ix
     ret
 
-_amancio_whip_up:
-    ret
-_amancio_whip_down:
-    ret
-_amancio_whip_left:
-    ret
-_amancio_whip_right:
-    ld ix, WHIP_ANIMATION_RIGHT
-    call animate_amancio_whip
-    ret
 
 ; modifies a, c
 ; checks:
@@ -187,6 +191,17 @@ __draw_sprites:
     ld (amancio_sprite_attrs+2), a
     add 4   ; 4 patters to the next sprite
     ld (amancio_sprite_attrs+6), a
+    ; whip sprites
+    ld a, (amancio_sprite_attrs)
+    add (ix+WHIP_OFFSET_Y)
+    ld (amancio_sprite_attrs+8), a
+    ld a, (amancio_sprite_attrs+1)
+    add (ix+WHIP_OFFSET_X)
+    ld (amancio_sprite_attrs+9), a
+    ld a, (ix+WHIP_PATTERN)
+    ld (amancio_sprite_attrs+10), a
+    ld a, WHIP_COLOR
+    ld (amancio_sprite_attrs+11), a
 __animate_amancio_whip_return:
     pop bc
     ret
@@ -195,15 +210,31 @@ __animate_amancio_whip_return:
 reset_stand_position:
     ld a, (amancio_direction)
     cp AMANCIO_STATUS_DIR_RIGHT
-    jp nz, __reset_check_left:
+    jp nz, __reset_check_left
     ld a, AMANCIO_RIGHT_PATTERN
-    ld (amancio_sprite_attrs+2), a
-    add 4
-    ld (amancio_sprite_attrs+6), a
-    ; todo: remove whip
-    ret
+    jp __reset_sprites
 __reset_check_left:
-__reset_update:
+    cp AMANCIO_STATUS_DIR_LEFT
+    jp nz, __reset_check_up
+    ld a, AMANCIO_LEFT_PATTERN
+    jp __reset_sprites
+__reset_check_up:
+    cp AMANCIO_STATUS_DIR_LEFT
+    jp nz, __reset_check_up
+    ld a, AMANCIO_UP_PATTERN
+    jp __reset_sprites
+__reset_check_down: ; default case   
+    ld a, AMANCIO_DOWN_PATTERN
+__reset_sprites:
+    ; update body sprites
+    ld (amancio_sprite_attrs+2), a
+    add 4   ; clothes are always 4 patterns after the skin
+    ld (amancio_sprite_attrs+6), a
+    ; remove whip
+    xor a
+    ld (amancio_sprite_attrs+8), a
+    ld (amancio_sprite_attrs+9), a
+    ld (amancio_sprite_attrs+11), a
     ret
 
 
