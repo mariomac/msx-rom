@@ -1,5 +1,6 @@
     include "rom/header.asm"
     include "bios.inc"
+    include "math.asm"
     include "graphics.asm"
     include "amancio.asm"
     include "worker.asm"

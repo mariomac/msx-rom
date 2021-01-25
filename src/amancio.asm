@@ -10,6 +10,9 @@ CONTROLS_KEY_MATRIX: equ 8
 AMANCIO_FRAME_TIMING_MASK: equ %111          ; walking frame
 AMANCIO_WHIP_PREPARE_TIME_MASK: equ %11
 AMANCIO_WHIP_TIME_MASK:  equ %1111
+; workers will check for collision only in this frame of the animation timing
+; for better performance, must be > PREPARE_TIME_MASK and < WHIP_TIME_TASK
+AMANCIO_WHIP_COLLISION_TIME: equ 4 
 WHIP_COLOR: equ 6
 
 WHIP_ANIMATION_RIGHT:
@@ -18,45 +21,52 @@ WHIP_ANIMATION_RIGHT:
     db AMANCIO_WHIP_RIGHT_PATTERN_BODY_1
     db AMANCIO_WHIP_RIGHT_PATTERN_WHIP_1
     db AMANCIO_WHIP_PREPARE_TIME_MASK
+    db 0,0,0,0   ; no collision box
     ; frame 1
     db 16, 0
     db AMANCIO_WHIP_RIGHT_PATTERN_BODY_2
     db AMANCIO_WHIP_RIGHT_PATTERN_WHIP_2
     db AMANCIO_WHIP_TIME_MASK
+    db 24, 8, 8, 2
 WHIP_ANIMATION_LEFT:
     ; frame 0
     db 16, 0
     db AMANCIO_WHIP_LEFT_PATTERN_BODY_1
     db AMANCIO_WHIP_LEFT_PATTERN_WHIP_1
     db AMANCIO_WHIP_PREPARE_TIME_MASK
+    db 0,0,0,0   ; no collision box
     ; frame 1
     db -16, 0
     db AMANCIO_WHIP_LEFT_PATTERN_BODY_2
     db AMANCIO_WHIP_LEFT_PATTERN_WHIP_2
     db AMANCIO_WHIP_TIME_MASK
+    db -8, 8, 8, 2
 WHIP_ANIMATION_DOWN:
     ; frame 0
     db 0, -16
     db AMANCIO_WHIP_DOWN_PATTERN_BODY_1
     db AMANCIO_WHIP_DOWN_PATTERN_WHIP_1
     db AMANCIO_WHIP_PREPARE_TIME_MASK
+    db 0,0,0,0   ; no collision box
     ; frame 1
     db 0, 16
     db AMANCIO_WHIP_DOWN_PATTERN_BODY_2
     db AMANCIO_WHIP_DOWN_PATTERN_WHIP_2
     db AMANCIO_WHIP_TIME_MASK
+    db 8,24,2,8   ; no collision box
 WHIP_ANIMATION_UP:
     ; frame 0
     db 16, 8
     db AMANCIO_WHIP_UP_PATTERN_BODY_1
     db AMANCIO_WHIP_UP_PATTERN_WHIP_1
     db AMANCIO_WHIP_PREPARE_TIME_MASK
+    db 0,0,0,0   ; no collision box 
     ; frame 1
     db 0, -16
     db AMANCIO_WHIP_UP_PATTERN_BODY_2
     db AMANCIO_WHIP_UP_PATTERN_WHIP_2
     db AMANCIO_WHIP_TIME_MASK
-
+    db 8,-8,2,8
 
 ; above structs fields (as offsets)
 WHIP_OFFSET_X:  equ 0
@@ -64,7 +74,11 @@ WHIP_OFFSET_Y:  equ 1
 BODY_PATTERN: equ 2
 WHIP_PATTERN: equ 3
 FRAME_TIMING: equ 4
-ANIM_STRUCT_LENGTH: equ 5
+WHIP_BOX_X: equ 5
+WHIP_BOX_Y: equ 6
+WHIP_BOX_RX: equ 7
+WHIP_BOX_RY: equ 8
+ANIM_STRUCT_LENGTH: equ 9
 
 update_amancio_status:
     ld a, (amancio_status)
@@ -184,6 +198,7 @@ animate_amancio:
 ; input ix, frames structs array start (e.g. WHIP_ANIMATION_RIGHT)
 animate_amancio_whip:
     push bc
+    push hl
     ; update ix to the current frame (only 2 possibilities)
     ld a, (amancio_frame_num)
     cp 0
@@ -204,12 +219,23 @@ __update_animation_whip:
     and 1 ; if frame turns back to 0, animation is over
     ld (amancio_frame_num), a
     cp 0                                        ; TODO: creo que es redundante, quitar
-    jp nz, __draw_sprites
+    jp nz, __set_whip_box
     ld a, (amancio_status)              ; animation is over. Come back to standing
     res AMANCIO_STATUS_WHIP_BIT, a
     ld (amancio_status), a
     call reset_stand_position
     jp __animate_amancio_whip_return
+__set_whip_box:
+    ld a, (amancio_sprite_attrs+1) ; box x : sprite attrs x + 8 + anim offset box
+    add (ix+WHIP_BOX_X)
+    ld (whip_collision_box+BOX_X), a
+    ld a, (amancio_sprite_attrs)
+    add (ix+WHIP_BOX_Y)
+    ld (whip_collision_box+BOX_Y), a
+    ld a, (ix+WHIP_BOX_RX)
+    ld (whip_collision_box+BOX_RX), a
+    ld a, (ix+WHIP_BOX_RY)
+    ld (whip_collision_box+BOX_RY), a
 __draw_sprites:
     ; body sprites
     ld a, (ix+BODY_PATTERN)
@@ -228,6 +254,7 @@ __draw_sprites:
     ld a, WHIP_COLOR
     ld (amancio_sprite_attrs+11), a
 __animate_amancio_whip_return:
+    pop hl
     pop bc
     ret
 
