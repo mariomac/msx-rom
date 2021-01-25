@@ -45,6 +45,18 @@ WHIP_ANIMATION_DOWN:
     db AMANCIO_WHIP_DOWN_PATTERN_BODY_2
     db AMANCIO_WHIP_DOWN_PATTERN_WHIP_2
     db AMANCIO_WHIP_TIME_MASK
+WHIP_ANIMATION_UP:
+    ; frame 0
+    db 16, 8
+    db AMANCIO_WHIP_UP_PATTERN_BODY_1
+    db AMANCIO_WHIP_UP_PATTERN_WHIP_1
+    db AMANCIO_WHIP_PREPARE_TIME_MASK
+    ; frame 1
+    db 0, -16
+    db AMANCIO_WHIP_UP_PATTERN_BODY_2
+    db AMANCIO_WHIP_UP_PATTERN_WHIP_2
+    db AMANCIO_WHIP_TIME_MASK
+
 
 ; above structs fields (as offsets)
 WHIP_OFFSET_X:  equ 0
@@ -83,7 +95,8 @@ __case_whip_left:
             call animate_amancio_whip
             jp _update_amancio_status_end
 __default:
-            ;call _amancio_whip_up
+            ld ix, WHIP_ANIMATION_UP
+            call animate_amancio_whip
 _update_amancio_status_end:
     pop ix
     ret
@@ -231,7 +244,7 @@ __reset_check_left:
     ld a, AMANCIO_LEFT_PATTERN
     jp __reset_sprites
 __reset_check_up:
-    cp AMANCIO_STATUS_DIR_LEFT
+    cp AMANCIO_STATUS_DIR_UP
     jp nz, __reset_check_down
     ld a, AMANCIO_UP_PATTERN
     jp __reset_sprites

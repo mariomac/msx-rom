@@ -10,7 +10,7 @@ amancio_sprite_attrs_vals:
     DB _start_tile_top*8, _start_tile_left*8, 0, 9
     DB _start_tile_top*8, _start_tile_left*8, 4, 14
     ; whip sprite
-    DB 0, 0, 0, 15
+    DB 0, 0, 0, 0
 amancio_sprite_attrs_vals_end:
 
 ; pointer to the top-left tile map, corresponding to the amancio position
@@ -43,6 +43,9 @@ init_vars:
     ld a, 0
     ld (amancio_frame_num), a
     ld (amancio_status), a
+
+    ld a, AMANCIO_STATUS_DIR_DOWN
+    ld (amancio_direction), a
     
     ld de, amancio_sprite_attrs
     ld hl, amancio_sprite_attrs_vals
