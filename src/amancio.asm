@@ -6,11 +6,39 @@ KEY_SPACE:  equ  %00000001
 
 CONTROLS_KEY_MATRIX: equ 8
 
+; timing masks for amancio_frame_timing variable
+AMANCIO_FRAME_TIMING_MASK: equ %111          ; walking frame
+AMANCIO_WHIP_PREPARE_TIME_MASK: equ %11
+AMANCIO_WHIP_TIME_MASK:  equ %1111
+
+WHIP_ANIMATION_RIGHT:
+    ; frame 0
+    db -16, 0
+    db AMANCIO_WHIP_RIGHT_PATTERN_BODY_1
+    db AMANCIO_WHIP_RIGHT_PATTERN_WHIP_1
+    db AMANCIO_WHIP_PREPARE_TIME_MASK
+    ; frame 1
+    db 16, 0
+    db AMANCIO_WHIP_RIGHT_PATTERN_BODY_2
+    db AMANCIO_WHIP_RIGHT_PATTERN_WHIP_2
+    db AMANCIO_WHIP_TIME_MASK
+
+; above structs fields (as offsets)
+WHIP_OFFSET_X:  equ 0
+WHIP_OFFSET_Y:  equ 1
+BODY_PATTERN: equ 2
+WHIP_PATTERN: equ 3
+FRAME_TIMING: equ 4
+ANIM_STRUCT_LENGTH: equ 5
+
 update_amancio_status:
-    push ix
     ld a, (amancio_status)
     bit AMANCIO_STATUS_WHIP_BIT, a ; if whip is inactive, move amancio normally
-    call z, move_amancio
+    jp nz, __whip_active
+    call move_amancio
+    ret
+__whip_active:
+    push ix
     ; if whip is active, update whip status
     ld a, (amancio_direction)
 __case_whip_down:    
@@ -41,9 +69,8 @@ _amancio_whip_down:
 _amancio_whip_left:
     ret
 _amancio_whip_right:
-    ld a, (amancio_status)            ; set animation to whip, and reset frame
-    res AMANCIO_STATUS_WHIP_BIT, a
-    ld (amancio_status), a
+    ld ix, WHIP_ANIMATION_RIGHT
+    call animate_amancio_whip
     ret
 
 ; modifies a, c
@@ -62,6 +89,7 @@ move_amancio:
     set AMANCIO_STATUS_WHIP_BIT, a
     ld (amancio_status), a
     xor a
+    ld (amancio_frame_num), a
     ld (amancio_frame_timing), a
     ret
 _check_up:
@@ -110,7 +138,7 @@ animate_amancio:
     ld a, (amancio_frame_timing)                    ; check timing for updating animation
     inc a
     ld (amancio_frame_timing), a
-    and amancio_frame_timing_mask
+    and AMANCIO_FRAME_TIMING_MASK
     ret nz
     ld a, (amancio_frame_num)                       ; update offset frame
     add AMANCIO_FRAME_PATTERNS
@@ -124,8 +152,60 @@ animate_amancio:
     ld (amancio_sprite_attrs + 6), a
     ret
 
+; input ix, frames structs array start (e.g. WHIP_ANIMATION_RIGHT)
 animate_amancio_whip:
+    push bc
+    ; update ix to the current frame (only 2 possibilities)
+    ld a, (amancio_frame_num)
+    cp 0
+    jp z, __update_animation_whip
+    ld bc, ANIM_STRUCT_LENGTH
+    add ix, bc    ; TODO: probar add ixl, ANIM_STRUCT_LENGTH; adc ixh, 0 y ver si nos podemos ahorrar el push bx
+__update_animation_whip:
+    ; update animation (if reached last time of frame 1, whip status is over)
+    ld a, (amancio_frame_timing)
+    inc a
+    and (ix+FRAME_TIMING)
+    ld (amancio_frame_timing), a
+    cp 0                                        ; TODO: creo que es redundante, quitar
+    jp nz, __draw_sprites
+    ; increment frame
+    ld a, (amancio_frame_num)
+    inc a
+    and 1 ; if frame turns back to 0, animation is over
+    ld (amancio_frame_num), a
+    cp 0                                        ; TODO: creo que es redundante, quitar
+    jp nz, __draw_sprites
+    ld a, (amancio_status)              ; animation is over. Come back to standing
+    res AMANCIO_STATUS_WHIP_BIT, a
+    ld (amancio_status), a
+    call reset_stand_position
+    jp __animate_amancio_whip_return
+__draw_sprites:
+    ; body sprites
+    ld a, (ix+BODY_PATTERN)
+    ld (amancio_sprite_attrs+2), a
+    add 4   ; 4 patters to the next sprite
+    ld (amancio_sprite_attrs+6), a
+__animate_amancio_whip_return:
+    pop bc
     ret
+
+
+reset_stand_position:
+    ld a, (amancio_direction)
+    cp AMANCIO_STATUS_DIR_RIGHT
+    jp nz, __reset_check_left:
+    ld a, AMANCIO_RIGHT_PATTERN
+    ld (amancio_sprite_attrs+2), a
+    add 4
+    ld (amancio_sprite_attrs+6), a
+    ; todo: remove whip
+    ret
+__reset_check_left:
+__reset_update:
+    ret
+
 
 
 ; input: bc, cols, rows coordinates

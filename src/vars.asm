@@ -18,9 +18,6 @@ amancio_collision_ptr_val:
 
 ; timing of amancio animation
 amancio_frame_timing: equ amancio_collision_ptr+1
-AMANCIO_FRAME_TIMING_MASK: equ %111          ; walking frame
-AMANCIO_WHIP_PREPARE_TIME: equ %11
-AMANCIO_WHIP_TIME:  equ %1111
 
 amancio_frame_num: equ amancio_frame_timing+1
 
@@ -35,7 +32,7 @@ AMANCIO_STATUS_DIR_UP:        equ 2
 AMANCIO_STATUS_DIR_LEFT       equ 3
 
 amancio_status: equ amancio_direction+1
-AMANCIO_STATUS_WHIP_BIT       equ 0
+AMANCIO_STATUS_WHIP_BIT:      equ 0
 
 next_var: equ amancio_status+1
  
