@@ -20,7 +20,6 @@ amancio_collision_ptr_val:
 
 ; timing of amancio animation
 amancio_frame_timing: equ amancio_collision_ptr+1
-
 amancio_frame_num: equ amancio_frame_timing+1
 
 ; workers array of structs

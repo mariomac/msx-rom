@@ -30,6 +30,7 @@ WORKER_VRAM_ADDRESSES:
 
 WORKER_BOX_L_PIXELS: equ 16
 WORKERS_PER_ROW: equ 4
+WORKER_ROWS_NUM: equ 3
 WORKERS_ROWS: db 8*8, 13*8, 18*8
 
 ; STRUCT WORKER (offsets)
@@ -120,6 +121,7 @@ _on_step_reached_hurry:
     ret
 
 
+; ix: pointer to the worker
 ; a : new hurry
 ; modifies b
 _set_hurry:    
@@ -221,28 +223,68 @@ __rworker_copy:
 check_whip:
     push ix ; worker struct data
     push hl ; verifying rows
-    ld
-__next_row:    
-    ld a, (WORKERS_ROWS)
-    cp c
-
+    push bc
+    call _check_whip_rows
+    pop bc
     pop hl
     pop ix
     ret
 
 ; input: de coordinates x-y of a point
-;        hl: pointer to the row coordinate
-;        ix: row of workers
-; if the point is inside of a worker, returns c=1
-check_whip_row:
-    ld b, WORKERS_PER_ROW   ; if e > rowy
-__check_top_margin:    
+; modifies b, ix, hl
+_check_whip_rows:
+    ld ix, workers
+    ld b, WORKER_ROWS_NUM   
+    ld hl, WORKERS_ROWS
+__check_top_margin:             ; if e >= rowy (a)
     ld a, (hl)
     cp e
-    jp c, __check_bottom_margin
-    inc hl
+    jp c, __check_bottom_margin ; a <= e: check bottom margin
+    jp z, __check_bottom_margin
+    inc hl                      ; else go to the next row
     djnz __check_top_margin
+    ; all rows verified. ret
+    ret
 __check_bottom_margin:
+    add a, WORKER_BOX_L_PIXELS  ; and if e <= rowy+16 (a)
+    cp e
+    jp nc, __check_workers_in_row  ; a >= e: check workers in row
+    inc hl                          ; else go to the next row
+    djnz __check_top_margin
+    ; all rows verified. ret
+    ret
+__check_workers_in_row:
+    ld b, WORKERS_PER_ROW
+__check_left_margin:    
+    ld a, (ix + WORKER_X)         ; if d >= workerX (a)
+    cp d
+    jp c, __check_right_margin ; a <= d (true)
+    jp z, __check_right_margin
+    push bc             ; else go to the next worker
+    ld b, 0
+    ld c, WORKER_LEN
+    add ix, bc
+    pop bc
+    djnz __check_left_margin
+    ; all workers verified. ret
+    ret               
+__check_right_margin:
+    add a, WORKER_BOX_L_PIXELS  ; and if d <= workerX+16 (a)
+    cp d
+    jp nc, __collision_detected ; a >= d. Collision found
+                                ; else go to the next worker
+    push bc             ; else go to the next worker
+    ld b, 0
+    ld c, WORKER_LEN
+    add ix, bc
+    pop bc
+    djnz __check_left_margin
+    ; all workers verified
+    ret               
+__collision_detected:
+    ld a, 2 ; TODO: decrease as a function of current hurry
+    call _set_hurry
+    ret
 
 
     
