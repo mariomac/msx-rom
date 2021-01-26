@@ -1,11 +1,4 @@
-; STRUCT WORKER (offsets)
-WORKER_X: equ 0
-WORKER_Y: equ 1
-WORKER_STEP: equ 2
-WORKER_HURRY: equ 3
-WORKER_MACH_SPEED: equ 4 ; 111-like to mask step
-WORKER_FLAGS: equ 5
-WORKER_LEN: equ 6
+
 
 WORKER_FLAG_FRAME_MACH: equ 0
 WORKER_FLAG_FRAME_HEAD: equ 1
@@ -35,20 +28,31 @@ WORKER_VRAM_ADDRESSES:
     DW SCR2_CHARPOS+(144/8*32+136/8) ; worker 
     DW SCR2_CHARPOS+(144/8*32+192/8) ; worker 12
 
+WORKER_BOX_L_PIXELS: equ 16
+WORKERS_PER_ROW: equ 4
+WORKERS_ROWS: db 8*8, 13*8, 18*8
+
+; STRUCT WORKER (offsets)
+WORKER_X: equ 0
+WORKER_STEP: equ 1
+WORKER_HURRY: equ 2
+WORKER_MACH_SPEED: equ 3 ; 111-like to mask step
+WORKER_FLAGS: equ 4
+WORKER_LEN: equ 5
 NUM_WORKERS: equ 12
 workers_init_vals:
-    DB 40, 64, 0, 40, %11, 0  ; worker 1
-    DB 80, 64, 0, 90, %111, 0  ; worker 2 ; todo: move boxes left and down
-    DB 136, 64, 20, 40, %11, 0  ; worker 3
-    DB 192, 64, 0, 80, %111, 0  ; worker 4
-    DB 32, 104, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE
-    DB 88, 104, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE
-    DB 144, 104, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE
-    DB 200, 104, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE
-    DB 24, 144, 0, 60, %111, 0  ; worker 9
-    DB 80, 144, 0, 250, %11111, 0  ; worker 10
-    DB 136, 144, 0, 50, %111, 0  ; worker 11
-    DB 192, 144, 0, 1, %1, 0  ; worker 12
+    DB 5*8, 0, 40, %11, 0  ; worker 1
+    DB 12*8, 0, 90, %111, 0  ; worker 2 ; todo: move boxes left and down
+    DB 19*8, 20, 40, %11, 0  ; worker 3
+    DB 26*8, 0, 80, %111, 0  ; worker 4
+    DB 4*8, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE
+    DB 11*8, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE
+    DB 18*8, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE
+    DB 25*8, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE
+    DB 5*8, 0, 60, %111, 0  ; worker 9
+    DB 12*8, 0, 250, %11111, 0  ; worker 10
+    DB 19*8, 0, 50, %111, 0  ; worker 11
+    DB 26*8, 0, 1, %1, 0  ; worker 12
 workers_init_vals_end:
 
 update_workers:
@@ -211,3 +215,34 @@ __rworker_copy:
     pop hl
     ret
 
+
+; input: de coordinates x-y of a point
+; if the point is inside a worker, it increases his hurry
+check_whip:
+    push ix ; worker struct data
+    push hl ; verifying rows
+    ld
+__next_row:    
+    ld a, (WORKERS_ROWS)
+    cp c
+
+    pop hl
+    pop ix
+    ret
+
+; input: de coordinates x-y of a point
+;        hl: pointer to the row coordinate
+;        ix: row of workers
+; if the point is inside of a worker, returns c=1
+check_whip_row:
+    ld b, WORKERS_PER_ROW   ; if e > rowy
+__check_top_margin:    
+    ld a, (hl)
+    cp e
+    jp c, __check_bottom_margin
+    inc hl
+    djnz __check_top_margin
+__check_bottom_margin:
+
+
+    
