@@ -1,3 +1,8 @@
+BOX_X: equ 0
+BOX_Y: equ 1
+BOX_RX: equ 2
+BOX_RY: equ 3
+
 ; input ix: pointer to collision box 1
 ;       iy: pointer to collision box 2
 ; output: carry flag set if collision

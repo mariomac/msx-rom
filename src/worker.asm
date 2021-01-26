@@ -1,13 +1,11 @@
 ; STRUCT WORKER (offsets)
 WORKER_X: equ 0
 WORKER_Y: equ 1
-WORKER_RX: equ 2
-WORKER_RY: equ 3
-WORKER_STEP: equ 4
-WORKER_HURRY: equ 5
-WORKER_MACH_SPEED: equ 6 ; 111-like to mask step
-WORKER_FLAGS: equ 7
-WORKER_LEN: equ 8
+WORKER_STEP: equ 2
+WORKER_HURRY: equ 3
+WORKER_MACH_SPEED: equ 4 ; 111-like to mask step
+WORKER_FLAGS: equ 5
+WORKER_LEN: equ 6
 
 WORKER_FLAG_FRAME_MACH: equ 0
 WORKER_FLAG_FRAME_HEAD: equ 1
@@ -39,48 +37,28 @@ WORKER_VRAM_ADDRESSES:
 
 NUM_WORKERS: equ 12
 workers_init_vals:
-    DB 40, 64, 8, 8, 0, 40, %11, 0   ; worker 1
-    DB 88, 72, 8, 8, 0, 90, %111, 0  ; worker 2: todo: move boxes left and down
-    DB 144, 72, 8, 8,20, 40, %11, 0  ; worker 3
-    DB 200, 72, 8, 8, 0, 80, %111, 0  ; worker 4
-    DB 40, 112, 8, 8, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE  
-    DB 96, 112, 8, 8, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE  
-    DB 152, 112, 8, 8, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE  
-    DB 208, 112, 8, 8, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE 
-    DB 32, 152, 8, 8, 0, 60, %111, 0  ; worker 9
-    DB 88, 152, 8, 8, 0, 250, %11111, 0  ; worker 10
-    DB 144, 152, 8, 8, 0, 50, %111, 0  ; worker 11
-    DB 200, 152, 8, 8, 0, 1, %1, 0  ; worker 12
+    DB 40, 64, 0, 40, %11, 0  ; worker 1
+    DB 80, 64, 0, 90, %111, 0  ; worker 2 ; todo: move boxes left and down
+    DB 136, 64, 20, 40, %11, 0  ; worker 3
+    DB 192, 64, 0, 80, %111, 0  ; worker 4
+    DB 32, 104, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE
+    DB 88, 104, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE
+    DB 144, 104, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE
+    DB 200, 104, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE
+    DB 24, 144, 0, 60, %111, 0  ; worker 9
+    DB 80, 144, 0, 250, %11111, 0  ; worker 10
+    DB 136, 144, 0, 50, %111, 0  ; worker 11
+    DB 192, 144, 0, 1, %1, 0  ; worker 12
 workers_init_vals_end:
 
 update_workers:
     push ix
-    push iy
     push de
     push hl
     ld ix, workers
     ld b, NUM_WORKERS
     ld hl, WORKER_VRAM_ADDRESSES
-    ld iy, whip_collision_box    
 __worker_loop:
-    ; update hurry if the worker touches the whip
-    ; only if it is the frame timing 3 of the whip animation
-    ; (skip frame 3 since it is much more frequent)
-    ld a, (amancio_frame_timing)
-    cp AMANCIO_WHIP_COLLISION_TIME
-    jp nz, __worker_update_timing
-
-    ; this will work as long as the hit box are the 4 first bytes of each worker data
-    ; ix points to the start of the worker struct
-    ; iy points to whip_collision_box
-    call collision
-    jp nc, __worker_update_timing
-
-    push bc
-    ld a, 2   ; todo: increase it as a function of current (e.g. 50%)
-    call _set_hurry
-    pop bc
-__worker_update_timing:
     ; invert frame of the head when the step reaches the hurry
     ld a, (ix+WORKER_STEP)
     inc a
@@ -117,7 +95,6 @@ _nextworker:
     djnz __worker_loop
     pop hl
     pop de
-    pop iy
     pop ix
     ret
 

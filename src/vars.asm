@@ -36,14 +36,7 @@ AMANCIO_STATUS_DIR_LEFT       equ 3
 amancio_status: equ amancio_direction+1
 AMANCIO_STATUS_WHIP_BIT:      equ 0
 
-whip_collision_box: equ amancio_status+1
-next_var: equ whip_collision_box+4
-
-
-BOX_X: equ 0
-BOX_Y: equ 1
-BOX_RX: equ 2
-BOX_RY: equ 3
+next_var: equ amancio_status+1
  
 ; Moves ROM read-only values to main RAM
 init_vars:
