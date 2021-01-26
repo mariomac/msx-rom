@@ -439,6 +439,7 @@ verify_whip_collision:
     ret nz
     push de
     ; if not, we just entered the first time of frame 1 (whip extended): check collision
+    
     ld d, 6*8  ; pointing to first worker. TODO: put whip point coords
     ld e, 9*8
     call check_whip  ; if frame 1 started, check whip at this point
@@ -463,9 +464,11 @@ verify_whip_collision:
     ld d, 27*8  ; pointing to first worker. TODO: put whip point coords
     ld e, 19*8
     call check_whip  ; if frame 1 started, check whip at this point
+    
     ld d, 5*8  ; pointing to first worker. TODO: put whip point coords
     ld e, 14*8
     call check_whip  ; if frame 1 started, check whip at this point
+    
     ld d, 12*8  ; pointing to first worker. TODO: put whip point coords
     ld e, 14*8
     call check_whip  ; if frame 1 started, check whip at this point
@@ -473,7 +476,8 @@ verify_whip_collision:
     ld e, 14*8
     call check_whip  ; if frame 1 started, check whip at this point
     ld d, 26*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 14*8
+    ld e, 19*8  ; should not collide
     call check_whip  ; if frame 1 started, check whip at this point    
+    
     pop de
     ret

@@ -241,7 +241,12 @@ __check_top_margin:             ; if e >= rowy (a)
     cp e
     jp c, __check_bottom_margin ; a <= e: check bottom margin
     jp z, __check_bottom_margin
-    inc hl                      ; else go to the next row
+    inc hl                      ; else go to the next row 
+    push bc                         ; also point to workers of such row
+    ld b, 0
+    ld c, WORKERS_PER_ROW*WORKER_LEN
+    add ix, bc
+    pop bc  
     djnz __check_top_margin
     ; all rows verified. ret
     ret
@@ -250,6 +255,11 @@ __check_bottom_margin:
     cp e
     jp nc, __check_workers_in_row  ; a >= e: check workers in row
     inc hl                          ; else go to the next row
+    push bc                         ; also point to workers of such row
+    ld b, 0
+    ld c, WORKERS_PER_ROW*WORKER_LEN
+    add ix, bc
+    pop bc  
     djnz __check_top_margin
     ; all rows verified. ret
     ret
