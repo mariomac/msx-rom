@@ -59,6 +59,13 @@ WHIP_ANIMATION_UP:
     db AMANCIO_WHIP_UP_PATTERN_WHIP_2
     db AMANCIO_WHIP_TIME_MASK
 
+; x-y offsets for the whip collision point, indexed in the
+; same order as the amancio_direction variable
+WHIP_COLLISIONS_OFFSETS:
+    db 8, 31  ; down
+    db 31, 8  ; right
+    db 8, -15 ; up
+    db -15, 8 ; left
 
 ; above structs fields (as offsets)
 WHIP_OFFSET_X:  equ 0
@@ -76,8 +83,8 @@ update_amancio_status:
     ret
 __whip_active:
     ; if whip is active, check whip collision in time 0 of frame 1
-    call verify_whip_collision
     push ix
+    call verify_whip_collision
     ld a, (amancio_direction)
 __case_whip_down:    
             cp AMANCIO_STATUS_DIR_DOWN
@@ -429,6 +436,7 @@ __try_right_free_move:
     ld (amancio_sprite_attrs+4), bc
     ret
 
+; modifies  bc, hl
 verify_whip_collision:
     ; we only verify whip collision in a given time of a given frame
     ld a,(amancio_frame_timing)
@@ -438,46 +446,27 @@ verify_whip_collision:
     cp WHIP_COLLIDES_FRAME
     ret nz
     push de
+    push hl
     ; if not, we just entered the first time of frame 1 (whip extended): check collision
-    
-    ld d, 6*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 9*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 13*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 9*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 20*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 9*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 27*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 9*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 6*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 19*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 13*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 19*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 20*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 19*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 27*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 19*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    
-    ld d, 5*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 14*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    
-    ld d, 12*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 14*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 19*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 14*8
-    call check_whip  ; if frame 1 started, check whip at this point
-    ld d, 26*8  ; pointing to first worker. TODO: put whip point coords
-    ld e, 19*8  ; should not collide
-    call check_whip  ; if frame 1 started, check whip at this point    
-    
+    ; collision point is amancio position + offset
+    ; horizontal position: WHIP_COLLISIONS_OFFSETS[amancio_direction*2]+position
+    ld hl, WHIP_COLLISIONS_OFFSETS
+    ld b, 0
+    ld a, (amancio_direction)
+    ld c, a
+    sla c
+    add hl, bc
+    ld a, (amancio_sprite_attrs+1)
+    add (hl)
+    ld d, a
+
+    ; vertical position: WHIP_COLLISIONS_OFFSETS[amancio_direction*2+1]+position
+    inc hl
+    ld a, (amancio_sprite_attrs)
+    add (hl)
+    ld e, a
+    call check_whip
+   
+    pop hl
     pop de
     ret

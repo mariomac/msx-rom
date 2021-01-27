@@ -70,10 +70,10 @@ __worker_loop:
     ld (ix+WORKER_STEP), a
     cp (ix+WORKER_HURRY)
     jp nz, __update_worker_mach
-    call _on_step_reached_hurry
     ld a, (ix+WORKER_FLAGS)
     xor 1<<WORKER_FLAG_FRAME_HEAD
     ld (ix+WORKER_FLAGS), a
+    call _on_step_reached_hurry
 __update_worker_mach:
     ld a, (ix+WORKER_STEP)
     and (ix+WORKER_MACH_SPEED)
@@ -292,7 +292,7 @@ __check_right_margin:
     ; all workers verified
     ret               
 __collision_detected:
-    ld a, 2 ; TODO: decrease as a function of current hurry
+    ld a, 1 ; TODO: decrease as a function of current hurry
     call _set_hurry
     ret
 
