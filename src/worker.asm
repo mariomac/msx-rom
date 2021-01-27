@@ -130,7 +130,7 @@ _set_hurry:
     ld a, MINIMUM_HURRY_INCREASE
 __increase_hurry:    
     add b
-    cp b ; if a < b, it means overflow. Setting to 255 (max) 
+    cp b ; if a+b < b, it means overflow. Setting to 255 (max) ; todo: probably can be replaced by check carry flag
     jp nc, __update_machine_speed
     ld a, 255
 __update_machine_speed:
@@ -292,6 +292,8 @@ __check_right_margin:
     ; all workers verified
     ret               
 __collision_detected:
+    xor a  ; reset worker frame
+    ld (ix+WORKER_STEP), a
     ld a, 1 ; TODO: decrease as a function of current hurry
     call _set_hurry
     ret
