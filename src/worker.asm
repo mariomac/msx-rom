@@ -18,7 +18,7 @@ WORKER_VRAM_ADDRESSES:
     DW SCR2_CHARPOS+(64/8*32+80/8) ; worker 
     DW SCR2_CHARPOS+(64/8*32+136/8) ; worker 
     DW SCR2_CHARPOS+(64/8*32+192/8) ; worker 
-    DW SCR2_CHARPOS+(104/8*32+32/8) ; worker 
+    DW SCR2_CHARPOS+(13*32+4) ; worker 
     DW SCR2_CHARPOS+(104/8*32+88/8) ; worker 
     DW SCR2_CHARPOS+(104/8*32+144/8) ; worker 
     DW SCR2_CHARPOS+(104/8*32+200/8) ; worker 
@@ -212,10 +212,10 @@ __set_frame2_rworker_mach:
     ld hl, RWORKER_FRAME2_TILES+2
 __rworker_copy:
     ld bc, 2
-    pop de
     inc de ; machine offset +2
     inc de
     call BIOS_LDIRVM
+    pop de
     pop bc
     pop hl
     ret
@@ -324,15 +324,14 @@ increase_shirts:
 	push de ; push twice to exchange value with hl
 	pop hl
 	inc a
+	ld b, 0
 	ld (ix+WORKER_SHIRTS), a
 	bit WORKER_FLAG_LEFTSIDE, (ix+WORKER_FLAGS)
 	jp nz, .isright
-	ld b, 0
 	ld c, 32		; worker vram address + 32 (next row)
 	ld d, L_SHIRTS_BOX      ; base pattern number
 	jp .drawframe
-.isright:	ld b, 0		; worker vram address + 34 (next column+2 rows)
-	ld c, 34
+.isright:	ld c, 35		; worker vram address + 34 (next column+3 rows)
 	ld d, R_SHIRTS_BOX	; base pattern number
 .drawframe:	add hl, bc
 	; frame num: (shirts / max_shirts) * frames
@@ -342,7 +341,6 @@ increase_shirts:
 	sra a
 	sra a	
 	add a, d
-	;ld hl, SCR2_CHARPOS
 	; at this point:
 	; hl: destination tile
 	; a: pattern to be drawn
