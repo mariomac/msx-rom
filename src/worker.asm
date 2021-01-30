@@ -75,6 +75,10 @@ __worker_loop:
     ld (ix+WORKER_FLAGS), a
     call _on_step_reached_hurry
 __update_worker_mach:
+    ;if worker reached max number of shirts, machine is stopped
+    ld a, (ix+WORKER_SHIRTS)
+    cp MAX_WORKER_SHIRTS
+    jp z, __update_worker
     ld a, (ix+WORKER_STEP)
     and (ix+WORKER_MACH_SPEED)
     jp nz, __update_worker
@@ -305,9 +309,9 @@ __collision_detected:
 
 ; max shirts: 32
 MAX_WORKER_SHIRTS: equ 32
-SHIRTS_BOX_FRAMES: equ 4
+SHIRTS_BOX_FRAMES: equ 5
 L_SHIRTS_BOX: equ 44	; pattern numbers
-R_SHIRTS_BOX: equ 48
+R_SHIRTS_BOX: equ 49
 
 ; if the worker step is 0 (it means it reached hurry)
 ; increases number of shirts and redraw the shirts box frame
@@ -336,9 +340,9 @@ increase_shirts:
 .isright:	ld c, 35		; worker vram address + 34 (next column+3 rows)
 	ld d, R_SHIRTS_BOX	; base pattern number
 .drawframe:	add hl, bc
-	; frame num: (shirts / max_shirts) * frames
+	; frame num: 1 + (shirts / max_shirts) * (frames-1)
 	; the number of slas must be updated if max shirts or box frames change
-	dec a	; decrementing the frame number to not overpass the frame
+	;dec a	; decrementing the frame number to not overpass the frame
 	sra a
 	sra a
 	sra a	
