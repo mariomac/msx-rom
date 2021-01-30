@@ -69,16 +69,11 @@ __worker_loop:
     inc a
     ld (ix+WORKER_STEP), a
     cp (ix+WORKER_HURRY)
-    ld e, (hl)  ; load next worker vram address
-    inc hl
-    ld d, (hl)
-    inc hl    
     jp nz, __update_worker_mach
     ld a, (ix+WORKER_FLAGS)
     xor 1<<WORKER_FLAG_FRAME_HEAD
     ld (ix+WORKER_FLAGS), a
     call _on_step_reached_hurry
-    call increase_shirts
 __update_worker_mach:
     ld a, (ix+WORKER_STEP)
     and (ix+WORKER_MACH_SPEED)
@@ -87,6 +82,10 @@ __update_worker_mach:
     xor 1<<WORKER_FLAG_FRAME_MACH
     ld (ix+WORKER_FLAGS), a
 __update_worker:
+    ld e, (hl)  ; load next worker vram address
+    inc hl
+    ld d, (hl)
+    inc hl    
     ld a, (ix+WORKER_FLAGS)
     bit WORKER_FLAG_LEFTSIDE, a
     jp nz, _is_rightworker    
@@ -94,7 +93,8 @@ __update_worker:
     jp _nextworker
 _is_rightworker:
     call _update_rworker_image
-_nextworker:    
+_nextworker:
+    call increase_shirts
     ; go to the next worker
     ld de, WORKER_LEN
     add ix, de
@@ -182,9 +182,11 @@ __set_frame2_lworker_head
 __worker_copy:
     ld bc, 2
     pop de
+    push de
     inc de ; head offset +2
     inc de
     call BIOS_LDIRVM
+    pop de
     pop bc
     pop hl
     ret
@@ -302,49 +304,48 @@ __collision_detected:
 ; max shirts: 32
 MAX_WORKER_SHIRTS: equ 32
 SHIRTS_BOX_FRAMES: equ 4
-L_SHIRTS_BOX: equ BANK_PATTERN_0+44
-R_SHIRTS_BOX: equ BANK_PATTERN_0+48
+L_SHIRTS_BOX: equ 44	; pattern numbers
+R_SHIRTS_BOX: equ 48
 
+; if the worker step is 0 (it means it reached hurry)
 ; increases number of shirts and redraw the shirts box frame
 ; input:	ix: worker address
 ;	de: worker vram address
 increase_shirts:
+	ld a, (ix+WORKER_STEP)		; if frame != 0, return
+	cp 0
+	ret nz
+	ld a, (ix+WORKER_SHIRTS)	; if max shirts reached, return
+	cp MAX_WORKER_SHIRTS
+	ret z
 	push bc
 	push hl
 	push de
 	push de ; push twice to exchange value with hl
 	pop hl
-	ld a, (ix+WORKER_SHIRTS)
 	inc a
 	ld (ix+WORKER_SHIRTS), a
 	bit WORKER_FLAG_LEFTSIDE, (ix+WORKER_FLAGS)
 	jp nz, .isright
 	ld b, 0
 	ld c, 32		; worker vram address + 32 (next row)
-	ld de, L_SHIRTS_BOX
+	ld d, L_SHIRTS_BOX      ; base pattern number
 	jp .drawframe
 .isright:	ld b, 0		; worker vram address + 34 (next column+2 rows)
 	ld c, 34
-	ld de, R_SHIRTS_BOX
+	ld d, R_SHIRTS_BOX	; base pattern number
 .drawframe:	add hl, bc
 	; frame num: (shirts / max_shirts) * frames
 	; the number of slas must be updated if max shirts or box frames change
-	sla a
-	sla a
-	sla a	
+	dec a	; decrementing the frame number to not overpass the frame
+	sra a
+	sra a
+	sra a	
+	add a, d
+	;ld hl, SCR2_CHARPOS
 	; at this point:
 	; hl: destination tile
-	; de: source frame base
-	; invert to operate with source frame base
-	push de
-	push hl
-	pop de
-	pop hl
-	ld c, a		; add the frame to the base
-	add hl, bc 
-	ld a, (hl)		; draw tile
-	push de
-	pop hl
+	; a: pattern to be drawn
 	call BIOS_WRTVRM
 	pop de
 	pop hl
