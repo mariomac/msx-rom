@@ -195,6 +195,7 @@ _update_rworker_image:
     push hl
     push bc
     push de
+    push de
     bit WORKER_FLAG_FRAME_HEAD, (ix+WORKER_FLAGS) ;update head
     jp z, __set_frame2_rworker_head
     ld hl, RWORKER_FRAME1_TILES
@@ -212,6 +213,7 @@ __set_frame2_rworker_mach:
     ld hl, RWORKER_FRAME2_TILES+2
 __rworker_copy:
     ld bc, 2
+    pop de
     inc de ; machine offset +2
     inc de
     call BIOS_LDIRVM
