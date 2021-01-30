@@ -26,6 +26,7 @@ amancio_frame_num: equ amancio_frame_timing+1
 workers: equ amancio_frame_num+1
 _workers_end: EQU workers+(workers_init_vals_end-workers_init_vals)
 
+
 amancio_direction: equ _workers_end+1 ; down-right-up-left
 AMANCIO_STATUS_DIR_DOWN       equ 0
 AMANCIO_STATUS_DIR_RIGHT      equ 1

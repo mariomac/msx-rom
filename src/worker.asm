@@ -1,5 +1,4 @@
 
-
 WORKER_FLAG_FRAME_MACH: equ 0
 WORKER_FLAG_FRAME_HEAD: equ 1
 WORKER_FLAG_LEFTSIDE:   equ 2
@@ -39,21 +38,22 @@ WORKER_STEP: equ 1
 WORKER_HURRY: equ 2
 WORKER_MACH_SPEED: equ 3 ; 111-like to mask step
 WORKER_FLAGS: equ 4
-WORKER_LEN: equ 5
+WORKER_SHIRTS: equ 5   ; number of shirts
+WORKER_LEN: equ 6
 NUM_WORKERS: equ 12
 workers_init_vals:
-    DB 5*8, 0, 40, %11, 0  ; worker 1
-    DB 12*8, 0, 90, %111, 0  ; worker 2 ; todo: move boxes left and down
-    DB 19*8, 20, 40, %11, 0  ; worker 3
-    DB 26*8, 0, 80, %111, 0  ; worker 4
-    DB 4*8, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE
-    DB 11*8, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE
-    DB 18*8, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE
-    DB 25*8, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE
-    DB 5*8, 0, 60, %111, 0  ; worker 9
-    DB 12*8, 0, 250, %11111, 0  ; worker 10
-    DB 19*8, 0, 50, %111, 0  ; worker 11
-    DB 26*8, 0, 1, %1, 0  ; worker 12
+    DB 5*8, 0, 40, %11, 0, 0		; worker 1
+    DB 12*8, 0, 90, %111, 0, 0 
+    DB 19*8, 20, 40, %11, 0, 0  
+    DB 26*8, 0, 80, %111, 0, 0  
+    DB 4*8, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 11*8, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 18*8, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 25*8, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 5*8, 0, 60, %111, 0, 0
+    DB 12*8, 0, 250, %11111, 0, 0  
+    DB 19*8, 0, 50, %111, 0, 0
+    DB 26*8, 0, 1, %1, 0, 0         ; worker 12
 workers_init_vals_end:
 
 update_workers:
@@ -69,11 +69,16 @@ __worker_loop:
     inc a
     ld (ix+WORKER_STEP), a
     cp (ix+WORKER_HURRY)
+    ld e, (hl)  ; load next worker vram address
+    inc hl
+    ld d, (hl)
+    inc hl    
     jp nz, __update_worker_mach
     ld a, (ix+WORKER_FLAGS)
     xor 1<<WORKER_FLAG_FRAME_HEAD
     ld (ix+WORKER_FLAGS), a
     call _on_step_reached_hurry
+    call increase_shirts
 __update_worker_mach:
     ld a, (ix+WORKER_STEP)
     and (ix+WORKER_MACH_SPEED)
@@ -82,10 +87,6 @@ __update_worker_mach:
     xor 1<<WORKER_FLAG_FRAME_MACH
     ld (ix+WORKER_FLAGS), a
 __update_worker:
-    ld e, (hl)  ; load next worker vram address
-    inc hl
-    ld d, (hl)
-    inc hl
     ld a, (ix+WORKER_FLAGS)
     bit WORKER_FLAG_LEFTSIDE, a
     jp nz, _is_rightworker    
@@ -298,5 +299,56 @@ __collision_detected:
     call _set_hurry
     ret
 
+; max shirts: 32
+MAX_WORKER_SHIRTS: equ 32
+SHIRTS_BOX_FRAMES: equ 4
+L_SHIRTS_BOX: equ BANK_PATTERN_0+44
+R_SHIRTS_BOX: equ BANK_PATTERN_0+48
 
-    
+; increases number of shirts and redraw the shirts box frame
+; input:	ix: worker address
+;	de: worker vram address
+increase_shirts:
+	push bc
+	push hl
+	push de
+	push de ; push twice to exchange value with hl
+	pop hl
+	ld a, (ix+WORKER_SHIRTS)
+	inc a
+	ld (ix+WORKER_SHIRTS), a
+	bit WORKER_FLAG_LEFTSIDE, (ix+WORKER_FLAGS)
+	jp nz, .isright
+	ld b, 0
+	ld c, 32		; worker vram address + 32 (next row)
+	ld de, L_SHIRTS_BOX
+	jp .drawframe
+.isright:	ld b, 0		; worker vram address + 34 (next column+2 rows)
+	ld c, 34
+	ld de, R_SHIRTS_BOX
+.drawframe:	add hl, bc
+	; frame num: (shirts / max_shirts) * frames
+	; the number of slas must be updated if max shirts or box frames change
+	sla a
+	sla a
+	sla a	
+	; at this point:
+	; hl: destination tile
+	; de: source frame base
+	; invert to operate with source frame base
+	push de
+	push hl
+	pop de
+	pop hl
+	ld c, a		; add the frame to the base
+	add hl, bc 
+	ld a, (hl)		; draw tile
+	push de
+	pop hl
+	call BIOS_WRTVRM
+	pop de
+	pop hl
+	pop bc
+	ret
+
+	

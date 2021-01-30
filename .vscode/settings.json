@@ -3,5 +3,11 @@
         "*.asm": "z80-macroasm",
         "*.as": "z80-macroasm",
     },
-    "z80-asm-meter.platform": "msx"
+    "z80-asm-meter.platform": "msx",
+    "z80-instruction-set.enableHovering": true,
+    "[z80-macroasm]": {
+        "editor.detectIndentation": false,
+        "editor.insertSpaces": false,
+        "editor.tabSize": 12,
+    },
 }
