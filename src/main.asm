@@ -4,6 +4,7 @@
     include "graphics.asm"
     include "amancio.asm"
     include "worker.asm"
+    include "wagon.asm"
     include "vars.asm"
 
 main:

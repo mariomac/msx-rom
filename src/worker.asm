@@ -310,8 +310,8 @@ __collision_detected:
 ; max shirts: 32
 MAX_WORKER_SHIRTS: equ 32
 SHIRTS_BOX_FRAMES: equ 5
-L_SHIRTS_BOX: equ 44	; pattern numbers
-R_SHIRTS_BOX: equ 49
+L_SHIRTS_BOX: equ 64	; pattern numbers
+R_SHIRTS_BOX: equ 69
 
 ; if the worker step is 0 (it means it reached hurry)
 ; increases number of shirts and redraw the shirts box frame

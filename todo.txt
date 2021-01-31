@@ -1,1 +1,1 @@
-* parece que las cabezas no se aceleran bien después de un latigazo
+* right-facing worker can be whipped from the machine side
