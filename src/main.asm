@@ -13,11 +13,13 @@ main:
     call init_vars
     call init_graphics
 
-loop:
+.loop:
     halt
     call refresh_graphics    
     call update_amancio_status
     call update_workers
-    jp loop
+    call wagon.Update
+
+    jp .loop
 
     include "rom/tail.asm"

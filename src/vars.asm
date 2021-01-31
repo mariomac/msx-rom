@@ -36,7 +36,15 @@ AMANCIO_STATUS_DIR_LEFT       equ 3
 amancio_status: equ amancio_direction+1
 AMANCIO_STATUS_WHIP_BIT:      equ 0
 
-next_var: equ amancio_status+1
+; wagon variables
+wagon_status:	equ amancio_status+1
+wagon_shirts:	equ wagon_status+1
+wagon_x:		equ wagon_shirts+1	; in cols
+wagon_y:		equ wagon_x+1	; in rows
+wagon_dest_x:	equ wagon_y+1
+wagon_dest_y:	equ wagon_dest_x+1
+
+next_var: equ wagon_dest_y+1
  
 ; Moves ROM read-only values to main RAM
 init_vars:
@@ -59,4 +67,10 @@ init_vars:
     ld hl, workers_init_vals
     ld bc, workers_init_vals_end-workers_init_vals
     ldir
+
+    ld hl, wagon.INITIAL_VARS
+    ld de, wagon_status
+    ld bc, wagon.VARS_LENGTH
+    ldir
+
     ret
