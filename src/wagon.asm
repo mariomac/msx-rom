@@ -47,17 +47,21 @@ _update:	ld a, (wagon_status)
 
 _draw:	push hl
 	push bc
+	push de
 	ld b, 0
 	; dest pos: scr2_charpos + y * 32 + x
-	ld hl, SCR2_CHARPOS
+	ld hl, SCR2_CHARPOS	; todo: instead of recalculating, cache VRAM address and just update incrementally
 	ld a, (wagon_y)
-	ld c, a
-	sla c
-	sla c
-	sla c
-	sla c
-	sla c
-	add hl, bc
+	ld b, 5	; multiplying "de" 16 bit register by 32 (2^5)
+	ld d, 0
+	ld e, a
+.mul32:	sla d
+	sla e
+	jp nc, .mulcont
+	set 0, d
+.mulcont:	djnz .mul32	
+	add hl, de
+
 	ld a, (wagon_x)
 	ld c, a
 	add hl, bc
@@ -86,7 +90,7 @@ _draw:	push hl
 	inc hl
 	ld a, TILES_WHEELS+1
 	call BIOS_WRTVRM
-
+	pop de
 	pop bc
 	pop hl
 	ret
@@ -122,10 +126,20 @@ _on_seeking:
 	ld (wagon_dest_x), a
 	ld a, DOOR_Y
 	ld (wagon_dest_y), a
-	ld a, STATUS_MOVING
-	ld (wagon_status), a
 	jp .return
-.found: 	ld (wagon_dest_worker_ptr), ix
+.found: 	; if we are in the home door, we first move two rows below
+	; we'll re-seek later
+	ld a, (wagon_y)
+	cp DOOR_Y
+	jp nz, .go_wrkr	; seek the worker
+	ld a, DOOR_Y+2	; move to an open space
+	ld (wagon_dest_y), a
+	ld a, DOOR_X
+	ld (wagon_dest_x), a
+	xor a		; dst worker ptr needs to be null
+	ld (wagon_dest_worker_ptr), a
+	jp .return
+.go_wrkr:	ld (wagon_dest_worker_ptr), ix
 	ld a, (ix+WORKER_X) ; worker position is in pixels, we convert to blocks
 	sra a
 	sra a
@@ -141,9 +155,9 @@ _on_seeking:
 	sra a
 	sra a
 	ld (wagon_dest_y), a
-	ld a, STATUS_MOVING
+.return:	ld a, STATUS_MOVING
 	ld (wagon_status), a	
-.return:	pop bc
+	pop bc
 	pop de
 	pop ix
 	ret
@@ -157,44 +171,69 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	cp h
 	jp nz, .move_step
 	cp DOOR_Y	; if destination is in door's row, status is emptying
-	jp nz, .iscollect
+	jp nz, .isopen
 	ld a, STATUS_EMPTYING
 	ld (wagon_status), a
 	pop hl
-	ret 
+	ret
+.isopen:	; if we are in an open space (no destination worker), re-seek
+	ld a, (wagon_dest_worker_ptr)
+	cp 0
+	jp nz, .iscollect
+	ld a, STATUS_SEEKING
+	ld (wagon_status), a
+	pop hl
+	ret
 .iscollect:	ld a, STATUS_COLLECTING	; otherwise, status is collecting
 	ld (wagon_status), a
 	pop hl
 	ret
-.move_step:	push de	; just puts a tile in the destination. change by a proper step-by-step algorithm
-	push hl
-	push bc
-	push ix
-	ld ix, (wagon_dest_worker_ptr) ; messes worker just to test pointer
-	ld a, 1 << WORKER_FLAG_LEFTSIDE
-	ld (ix+WORKER_FLAGS), a
-	ld hl, SCR2_CHARPOS
+.move_step:	; if we haven't reached the destination but we are in the same row,
+	; we change our destination two rows down
 	ld a, (wagon_dest_y)
-	ld b, 5	; multiplying "de" 16 bit register by 32 (2^5)
-	ld d, 0
-	ld e, a
-.mul32:	sla d
-	sla e
-	jp nc, .mulcont
-	set 0, d
-.mulcont:	djnz .mul32	
-	add hl, de
-	ld a, (wagon_dest_x)
-	ld d, 0
-	ld e, a
-	add hl, de
-	ld a, 3
-	call BIOS_WRTVRM
-	pop ix
-	pop bc	
+	cp h
+	jp nz, .mv_horiz
+	ld a, (wagon_x)
+	inc a
+	inc a
+	ld (wagon_dest_x), a
+	ld a, (wagon_y)
+	ld (wagon_dest_y), a
 	pop hl
-	pop de
+	ret	
+.mv_horiz:	; first, move horizontal to align with the destination column
+	ld a, (wagon_dest_x)
+	ld l, a
+	ld a, (wagon_x)
+	cp l
+	jp z, .mv_vert
+	jp c, .mv_right
+	dec a
+	ld (wagon_x), a
+	pop hl
 	ret
+.mv_right:	inc a
+	ld (wagon_x), a
+	pop hl
+	ret
+.mv_vert:	; move up or down
+	ld a, (wagon_dest_y)
+	ld l, a
+	ld a, (wagon_y)
+	cp l
+	jp c, .mv_down
+	dec a
+	ld (wagon_y), a
+	pop hl
+	ret
+.mv_down:	inc a
+	ld (wagon_y), a
+	pop hl
+	ret
+
+.updt_ret:	pop hl
+	ret
+
 
 _on_collecting:
 	ret
