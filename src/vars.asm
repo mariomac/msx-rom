@@ -43,8 +43,9 @@ wagon_x:		equ wagon_shirts+1	; in cols
 wagon_y:		equ wagon_x+1	; in rows
 wagon_dest_x:	equ wagon_y+1
 wagon_dest_y:	equ wagon_dest_x+1
+wagon_dest_worker_ptr:	equ wagon_dest_y+1	; address of the destination worker
 
-next_var: equ wagon_dest_y+1
+next_var: equ wagon_dest_worker_ptr+2
  
 ; Moves ROM read-only values to main RAM
 init_vars:

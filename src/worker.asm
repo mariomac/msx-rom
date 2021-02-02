@@ -29,31 +29,32 @@ WORKER_VRAM_ADDRESSES:
 
 WORKER_BOX_L_PIXELS: equ 16
 WORKERS_PER_ROW: equ 4
-WORKER_ROWS_NUM: equ 3
-WORKERS_ROWS: db 8*8, 13*8, 18*8
+WORKER_ROWS_NUM: equ 3		; TODO: simplify _check_whip_rows and remove 
+WORKERS_ROWS: db 8*8, 13*8, 18*8	; TODO: simplify _check_whip_rows and remove 
 
 ; STRUCT WORKER (offsets)
 WORKER_X: equ 0
-WORKER_STEP: equ 1
-WORKER_HURRY: equ 2
-WORKER_MACH_SPEED: equ 3 ; 111-like to mask step
-WORKER_FLAGS: equ 4
-WORKER_SHIRTS: equ 5   ; number of shirts
-WORKER_LEN: equ 6
+WORKER_Y: equ 1
+WORKER_STEP: equ 2
+WORKER_HURRY: equ 3
+WORKER_MACH_SPEED: equ 4 ; 111-like to mask step
+WORKER_FLAGS: equ 5
+WORKER_SHIRTS: equ 6   ; number of shirts
+WORKER_LEN: equ 7
 NUM_WORKERS: equ 12
 workers_init_vals:
-    DB 5*8, 0, 40, %11, 0, 0		; worker 1
-    DB 12*8, 0, 90, %111, 0, 0 
-    DB 19*8, 20, 40, %11, 0, 0  
-    DB 26*8, 0, 80, %111, 0, 0  
-    DB 4*8, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
-    DB 11*8, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE, 0
-    DB 18*8, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
-    DB 25*8, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE, 0
-    DB 5*8, 0, 60, %111, 0, 0
-    DB 12*8, 0, 250, %11111, 0, 0  
-    DB 19*8, 0, 50, %111, 0, 0
-    DB 26*8, 0, 1, %1, 0, 0         ; worker 12
+    DB 5*8, 8*8, 0, 40, %11, 0, 0		; worker 1
+    DB 12*8, 8*8, 0, 90, %111, 0, 0 
+    DB 19*8, 8*8, 20, 40, %11, 0, 0  
+    DB 26*8, 8*8, 0, 80, %111, 0, 0  
+    DB 4*8, 13*8, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 11*8, 13*8, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 18*8, 13*8, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 25*8, 13*8, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DB 5*8, 18*8, 0, 60, %111, 0, 0
+    DB 12*8, 18*8, 0, 250, %11111, 0, 0  
+    DB 19*8, 18*8, 0, 50, %111, 0, 0
+    DB 26*8, 18*8, 0, 1, %1, 0, 0         ; worker 12
 workers_init_vals_end:
 
 update_workers:

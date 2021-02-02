@@ -9,14 +9,17 @@ FILL_LEVELS: equ 4
 ; status constants
 STATUS_EMPTYING:	equ 0
 STATUS_SEEKING:	equ 1
-STATUS_GOING:	equ 2
+STATUS_MOVING:	equ 2
 STATUS_COLLECTING:	equ 3
-STATUS_RETURNING:	equ 4
 
 MAX_SHIRTS: 	equ 128
 
+; position of the empty door
+DOOR_X:	equ 15
+DOOR_Y:	equ 3
+
 ; same order as vars.asm definition 
-INITIAL_VARS: db STATUS_EMPTYING, MAX_SHIRTS, 15, 3, 0, 0
+INITIAL_VARS: db STATUS_EMPTYING, MAX_SHIRTS, DOOR_X, DOOR_Y, 0, 0
 VARS_LENGTH:	equ 6
 
 
@@ -30,21 +33,17 @@ _update:	ld a, (wagon_status)
 	call _on_emptying
 	ret
 .seeking:	cp STATUS_SEEKING
-	jp nz, .going
+	jp nz, .moving
 	call _on_seeking
 	ret
-.going:	cp STATUS_GOING
+.moving:	cp STATUS_MOVING
 	jp nz, .collecting
-	call _on_going
+	call _on_moving
 	ret
 .collecting: cp STATUS_COLLECTING
-	jp nz, .returning
-	call _on_collecting
-	ret
-.returning:	cp STATUS_SEEKING
 	ret nz		; if status is inconsistent, wagon will block
-	call _on_seeking
-	ret	
+	call _on_collecting 
+	ret
 
 _draw:	push hl
 	push bc
@@ -95,14 +94,108 @@ _draw:	push hl
 _on_emptying:
 	ld a, (wagon_shirts)
 	dec a
-	cp 0
-	ret z ; todo move to next status
+	jp m, .seek		; if sign, we already had 0 shirts
 	ld (wagon_shirts), a
+	ret nz
+.seek:	; wagon empty. Moving to the next status
+	ld a, STATUS_SEEKING
+	ld (wagon_status), a
 	ret
+
 _on_seeking:
+	push ix
+	push de
+	push bc
+	; looks for any worker with the shirts box completed
+	ld c, 0
+	ld ix, workers
+.loop:	ld a, (ix+WORKER_SHIRTS)
+	cp MAX_WORKER_SHIRTS
+	jp z, .found
+	ld de, WORKER_LEN	; go to next worker, until all workers have been found
+	add ix, de		
+	ld a, c
+	inc c
+	cp NUM_WORKERS
+	jp nz, .loop
+	ld a, DOOR_X	; no worker found. Going to door
+	ld (wagon_dest_x), a
+	ld a, DOOR_Y
+	ld (wagon_dest_y), a
+	ld a, STATUS_MOVING
+	ld (wagon_status), a
+	jp .return
+.found: 	ld (wagon_dest_worker_ptr), ix
+	ld a, (ix+WORKER_X) ; worker position is in pixels, we convert to blocks
+	sra a
+	sra a
+	sra a
+	bit WORKER_FLAG_LEFTSIDE, (ix+WORKER_FLAGS)
+	jp nz, .isright
+	sub 4	 	; if left-side worker, decrease dest column
+	jp .set_dst_x
+.isright:	add 4		; if right-side worker, increase dest column
+.set_dst_x:	ld (wagon_dest_x), a
+	ld a, (ix+WORKER_Y) ; convert pixels to blocks
+	sra a
+	sra a
+	sra a
+	ld (wagon_dest_y), a
+	ld a, STATUS_MOVING
+	ld (wagon_status), a	
+.return:	pop bc
+	pop de
+	pop ix
 	ret
-_on_going:
+
+_on_moving: push hl ; if wagon reached destination, goes to the next state
+	ld hl, (wagon_x) ; h: wagon_y, l: wagon_x (contiguous positions)
+	ld a, (wagon_dest_x)
+	cp l
+	jp nz, .move_step
+	ld a, (wagon_dest_y)
+	cp h
+	jp nz, .move_step
+	cp DOOR_Y	; if destination is in door's row, status is emptying
+	jp nz, .iscollect
+	ld a, STATUS_EMPTYING
+	ld (wagon_status), a
+	pop hl
+	ret 
+.iscollect:	ld a, STATUS_COLLECTING	; otherwise, status is collecting
+	ld (wagon_status), a
+	pop hl
 	ret
+.move_step:	push de	; just puts a tile in the destination. change by a proper step-by-step algorithm
+	push hl
+	push bc
+	push ix
+	ld ix, (wagon_dest_worker_ptr) ; messes worker just to test pointer
+	ld a, 1 << WORKER_FLAG_LEFTSIDE
+	ld (ix+WORKER_FLAGS), a
+	ld hl, SCR2_CHARPOS
+	ld a, (wagon_dest_y)
+	ld b, 5	; multiplying "de" 16 bit register by 32 (2^5)
+	ld d, 0
+	ld e, a
+.mul32:	sla d
+	sla e
+	jp nc, .mulcont
+	set 0, d
+.mulcont:	djnz .mul32	
+	add hl, de
+	ld a, (wagon_dest_x)
+	ld d, 0
+	ld e, a
+	add hl, de
+	ld a, 3
+	call BIOS_WRTVRM
+	pop ix
+	pop bc	
+	pop hl
+	pop de
+	ret
+
 _on_collecting:
 	ret
 _on_returning:
