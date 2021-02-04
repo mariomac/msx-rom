@@ -20,7 +20,8 @@ DOOR_Y:	equ 3
 
 ; same order as vars.asm definition 
 INITIAL_VARS: db STATUS_EMPTYING, MAX_SHIRTS, DOOR_X, DOOR_Y, 0, 0
-VARS_LENGTH:	equ 6
+	  dw 0, SCR2_CHARPOS+DOOR_Y*32+DOOR_X, 0, 0	;vram addresses to redraw wagon
+INITIAL_VARS_END:
 
 
 Update:	call _update
@@ -48,23 +49,7 @@ _update:	ld a, (wagon_status)
 _draw:	push hl
 	push bc
 	push de
-	ld b, 0
-	; dest pos: scr2_charpos + y * 32 + x
-	ld hl, SCR2_CHARPOS	; todo: instead of recalculating, cache VRAM address and just update incrementally
-	ld a, (wagon_y)
-	ld b, 5	; multiplying "de" 16 bit register by 32 (2^5)
-	ld d, 0
-	ld e, a
-.mul32:	sla d
-	sla e
-	jp nc, .mulcont
-	set 0, d
-.mulcont:	djnz .mul32	
-	add hl, de
-
-	ld a, (wagon_x)
-	ld c, a
-	add hl, bc
+	ld hl, [wagon_vram_addr]
 	; draw top of the wagon
 	; tile: TILES_TOP + 2*(shirts/MAX_SHIRTS)*FILL_LEVELS
 	ld a, (wagon_shirts)
@@ -90,6 +75,14 @@ _draw:	push hl
 	inc hl
 	ld a, TILES_WHEELS+1
 	call BIOS_WRTVRM
+	; draw trail. TODO: add nonzero value to door empty
+	xor a
+	ld hl, [wagon_trl_vram_addr_1]
+	call BIOS_WRTVRM
+	xor a
+	ld hl, [wagon_trl_vram_addr_2]
+	call BIOS_WRTVRM
+
 	pop de
 	pop bc
 	pop hl
@@ -208,12 +201,32 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	cp l
 	jp z, .mv_vert
 	jp c, .mv_right
-	dec a
+	dec a		; update position
 	ld (wagon_x), a
+	ld hl, [wagon_vram_addr] ; update vram and trail vram
+	dec hl
+	ld [wagon_vram_addr], hl
+	inc hl
+	inc hl
+	ld [wagon_trl_vram_addr_1], hl
+	push de
+	ld de, 32
+	add hl, de
+	ld [wagon_trl_vram_addr_2], hl
+	pop de
 	pop hl
 	ret
-.mv_right:	inc a
-	ld (wagon_x), a
+.mv_right:	inc a		; update position
+	ld (wagon_x), a	
+	ld hl, [wagon_vram_addr]	; update vram and trail vram
+	ld [wagon_trl_vram_addr_1], hl
+	inc hl
+	ld [wagon_vram_addr], hl
+	push de
+	ld de, 31
+	add hl, de
+	ld [wagon_trl_vram_addr_2], hl
+	pop de
 	pop hl
 	ret
 .mv_vert:	; move up or down
@@ -222,12 +235,31 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	ld a, (wagon_y)
 	cp l
 	jp c, .mv_down
-	dec a
+	dec a			; update position
 	ld (wagon_y), a
+	ld hl, [wagon_vram_addr]	; update vram and trail
+	push de
+	ld de, -32
+	add hl, de
+	ld [wagon_vram_addr], hl
+	ld de, 64
+	add hl, de
+	ld [wagon_trl_vram_addr_1], hl 
+	inc hl
+	ld [wagon_trl_vram_addr_2], hl
+	pop de
 	pop hl
 	ret
-.mv_down:	inc a
+.mv_down:	inc a			; update position
 	ld (wagon_y), a
+	ld hl, [wagon_vram_addr]	; update vram and trail
+	ld [wagon_trl_vram_addr_1], hl
+	inc hl
+	ld [wagon_trl_vram_addr_2], hl
+	push de
+	ld de, 31
+	add hl, de
+	ld [wagon_vram_addr], hl
 	pop hl
 	ret
 

@@ -44,8 +44,11 @@ wagon_y:		equ wagon_x+1	; in rows
 wagon_dest_x:	equ wagon_y+1
 wagon_dest_y:	equ wagon_dest_x+1
 wagon_dest_worker_ptr:	equ wagon_dest_y+1	; address of the destination worker
+wagon_vram_addr:	equ wagon_dest_worker_ptr+2
+wagon_trl_vram_addr_1:	equ wagon_vram_addr+2		; address to erase trail, 1
+wagon_trl_vram_addr_2:	equ wagon_trl_vram_addr_1+2	; address to erase trail, 2
 
-next_var: equ wagon_dest_worker_ptr+2
+next_var: equ wagon_trl_vram_addr_2+2
  
 ; Moves ROM read-only values to main RAM
 init_vars:
@@ -71,7 +74,7 @@ init_vars:
 
     ld hl, wagon.INITIAL_VARS
     ld de, wagon_status
-    ld bc, wagon.VARS_LENGTH
+    ld bc, wagon.INITIAL_VARS_END-wagon.INITIAL_VARS
     ldir
 
     ret
