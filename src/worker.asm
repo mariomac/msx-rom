@@ -344,9 +344,9 @@ increase_shirts:
 	; frame num: 1 + (shirts / max_shirts) * (frames-1)
 	; the number of slas must be updated if max shirts or box frames change
 	;dec a	; decrementing the frame number to not overpass the frame
-	sra a
-	sra a
-	sra a	
+	srl a
+	srl a
+	srl a	
 	add a, d
 	; at this point:
 	; hl: destination tile

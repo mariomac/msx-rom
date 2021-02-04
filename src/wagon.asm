@@ -134,9 +134,9 @@ _on_seeking:
 	jp .return
 .go_wrkr:	ld (wagon_dest_worker_ptr), ix
 	ld a, (ix+WORKER_X) ; worker position is in pixels, we convert to blocks
-	sra a
-	sra a
-	sra a
+	srl a
+	srl a
+	srl a
 	bit WORKER_FLAG_LEFTSIDE, (ix+WORKER_FLAGS)
 	jp nz, .isright
 	sub 4	 	; if left-side worker, decrease dest column
@@ -144,9 +144,9 @@ _on_seeking:
 .isright:	add 4		; if right-side worker, increase dest column
 .set_dst_x:	ld (wagon_dest_x), a
 	ld a, (ix+WORKER_Y) ; convert pixels to blocks
-	sra a
-	sra a
-	sra a
+	srl a
+	srl a
+	srl a
 	ld (wagon_dest_y), a
 .return:	ld a, STATUS_MOVING
 	ld (wagon_status), a	
@@ -170,7 +170,7 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	pop hl
 	ret
 .isopen:	; if we are in an open space (no destination worker), re-seek
-	ld a, (wagon_dest_worker_ptr)
+	ld a, (wagon_dest_worker_ptr)	; wagon_dest_worker_ptr == null?
 	cp 0
 	jp nz, .iscollect
 	ld a, STATUS_SEEKING
@@ -201,7 +201,7 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	cp l
 	jp z, .mv_vert
 	jp c, .mv_right
-	dec a		; update position
+	dec a		; update position to move LEFT
 	ld (wagon_x), a
 	ld hl, [wagon_vram_addr] ; update vram and trail vram
 	dec hl
