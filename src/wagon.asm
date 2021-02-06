@@ -11,7 +11,6 @@ STATUS_EMPTYING:	equ 0
 STATUS_SEEKING:	equ 1
 STATUS_MOVING:	equ 2
 STATUS_COLLECTING:	equ 3
-STATUS_RETURNING:	equ 4
 
 MAX_SHIRTS: 	equ 128
 
@@ -101,7 +100,16 @@ _on_emptying:
 	ret
 
 _on_seeking:
-	push ix
+	; if the wagon is full, returns to door
+	ld a, (wagon_shirts)
+	cp MAX_WORKER_SHIRTS
+	jp nz, .seek_wrkr
+	ld a, DOOR_X
+	ld (wagon_dest_x), a
+	ld a, DOOR_X
+	ld (wagon_dest_y), a
+	ret
+.seek_wrkr:	push ix
 	push de
 	push bc
 	; looks for any worker with the shirts box completed
