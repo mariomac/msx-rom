@@ -11,6 +11,7 @@ STATUS_EMPTYING:	equ 0
 STATUS_SEEKING:	equ 1
 STATUS_MOVING:	equ 2
 STATUS_COLLECTING:	equ 3
+STATUS_RETURNING:	equ 4
 
 MAX_SHIRTS: 	equ 128
 
@@ -187,8 +188,7 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	cp h
 	jp nz, .mv_horiz
 	ld a, (wagon_x)
-	inc a
-	inc a
+	add 2
 	ld (wagon_dest_x), a
 	ld a, (wagon_y)
 	ld (wagon_dest_y), a
@@ -263,13 +263,39 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	pop hl
 	ret
 
-.updt_ret:	pop hl
-	ret
-
-
 _on_collecting:
+	ld a, (wagon_shirts)
+	cp MAX_SHIRTS
+	jp nz, .chk_shrts
+	; max shirts reached. Return home (first step up)
+	ld a, (wagon_y)
+	sub 2
+	ld (wagon_dest_y), a
+	xor a			; dest_worker = null
+	ld (wagon_dest_worker_ptr), a
+	ld a, STATUS_MOVING
+	ld (wagon_status), a
 	ret
-_on_returning:
+.chk_shrts:	push ix
+	ld ix, (wagon_dest_worker_ptr)	; check if there are more shirts in the box
+	ld a, (ix+WORKER_SHIRTS)
+	cp 0   			; is faster or a?
+	jp nz, .get_shrt
+	ld a, STATUS_MOVING		; all the shirts are collected. Move 2 rows down before seeking again
+	ld (wagon_status), a
+	ld a, (wagon_y)
+	sub 2
+	ld (wagon_dest_y), a
+	xor a			; dest_worker = null
+	ld (wagon_dest_worker_ptr), a
+	pop ix
+	ret
+.get_shrt:	dec a
+	ld (ix+WORKER_SHIRTS), a
+	ld a, (wagon_shirts)
+	inc a
+	ld (wagon_shirts), a	
+	pop ix
 	ret
 
 	ENDMODULE
