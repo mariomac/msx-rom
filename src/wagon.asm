@@ -106,8 +106,10 @@ _on_seeking:
 	jp nz, .seek_wrkr
 	ld a, DOOR_X
 	ld (wagon_dest_x), a
-	ld a, DOOR_X
+	ld a, DOOR_Y
 	ld (wagon_dest_y), a
+	ld a, STATUS_MOVING
+	ld (wagon_status), a
 	ret
 .seek_wrkr:	push ix
 	push de
