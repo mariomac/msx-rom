@@ -302,6 +302,7 @@ _on_collecting:
 	ret
 .get_shrt:	dec a
 	ld (ix+WORKER_SHIRTS), a
+	call draw_shirts_frame
 	ld a, (wagon_shirts)
 	inc a
 	ld (wagon_shirts), a	

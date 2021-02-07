@@ -13,20 +13,6 @@ LWORKER_FRAME2_TILES: DB 10, 11, 12, 13
 RWORKER_FRAME1_TILES: db 6, 7, 8, 9
 RWORKER_FRAME2_TILES: DB 14, 15, 16, 17
 
-WORKER_VRAM_ADDRESSES:
-    DW SCR2_CHARPOS+(64/8*32+24/8) ; worker 1
-    DW SCR2_CHARPOS+(64/8*32+80/8) ; worker 
-    DW SCR2_CHARPOS+(64/8*32+136/8) ; worker 
-    DW SCR2_CHARPOS+(64/8*32+192/8) ; worker 
-    DW SCR2_CHARPOS+(13*32+4) ; worker 
-    DW SCR2_CHARPOS+(104/8*32+88/8) ; worker 
-    DW SCR2_CHARPOS+(104/8*32+144/8) ; worker 
-    DW SCR2_CHARPOS+(104/8*32+200/8) ; worker 
-    DW SCR2_CHARPOS+(144/8*32+24/8) ; worker 
-    DW SCR2_CHARPOS+(144/8*32+80/8) ; worker 
-    DW SCR2_CHARPOS+(144/8*32+136/8) ; worker 
-    DW SCR2_CHARPOS+(144/8*32+192/8) ; worker 12
-
 WORKER_BOX_L_PIXELS: equ 16
 WORKERS_PER_ROW: equ 4
 WORKER_ROWS_NUM: equ 3		; TODO: simplify _check_whip_rows and remove 
@@ -39,31 +25,42 @@ WORKER_STEP: equ 2
 WORKER_HURRY: equ 3
 WORKER_MACH_SPEED: equ 4 ; 111-like to mask step
 WORKER_FLAGS: equ 5
-WORKER_SHIRTS: equ 6   ; number of shirts
-WORKER_LEN: equ 7
+WORKER_SHIRTS: equ 6   	; number of shirts
+WORKER_VRAM_ADDR: equ 7
+WORKER_LEN: equ 9
 NUM_WORKERS: equ 12
 workers_init_vals:
     DB 5*8, 8*8, 0, 40, %11, 0, 0		; worker 1
+    DW SCR2_CHARPOS+(64/8*32+24/8)		; vram addr of worker 1
     DB 12*8, 8*8, 0, 90, %111, 0, 0 
+    DW SCR2_CHARPOS+(64/8*32+80/8)
     DB 19*8, 8*8, 20, 40, %11, 0, 0  
+    DW SCR2_CHARPOS+(64/8*32+136/8)
     DB 26*8, 8*8, 0, 80, %111, 0, 0  
+    DW SCR2_CHARPOS+(64/8*32+192/8)
     DB 4*8, 13*8, 0, 40, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DW SCR2_CHARPOS+(13*32+4)
     DB 11*8, 13*8, 0, 128, %1111, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DW SCR2_CHARPOS+(104/8*32+88/8)
     DB 18*8, 13*8, 0, 90, %11, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DW SCR2_CHARPOS+(104/8*32+144/8)
     DB 25*8, 13*8, 0, 30, %1, 1 << WORKER_FLAG_LEFTSIDE, 0
+    DW SCR2_CHARPOS+(104/8*32+200/8)
     DB 5*8, 18*8, 0, 60, %111, 0, 0
+    DW SCR2_CHARPOS+(144/8*32+24/8)
     DB 12*8, 18*8, 0, 250, %11111, 0, 0  
+    DW SCR2_CHARPOS+(144/8*32+80/8)
     DB 19*8, 18*8, 0, 50, %111, 0, 0
+    DW SCR2_CHARPOS+(144/8*32+136/8)
     DB 26*8, 18*8, 0, 1, %1, 0, 0         ; worker 12
+    DW SCR2_CHARPOS+(144/8*32+192/8)
 workers_init_vals_end:
 
 update_workers:
     push ix
     push de
-    push hl
     ld ix, workers
     ld b, NUM_WORKERS
-    ld hl, WORKER_VRAM_ADDRESSES
 __worker_loop:
     ; invert frame of the head when the step reaches the hurry
     ld a, (ix+WORKER_STEP)
@@ -87,10 +84,6 @@ __update_worker_mach:
     xor 1<<WORKER_FLAG_FRAME_MACH
     ld (ix+WORKER_FLAGS), a
 __update_worker:
-    ld e, (hl)  ; load next worker vram address
-    inc hl
-    ld d, (hl)
-    inc hl    
     ld a, (ix+WORKER_FLAGS)
     bit WORKER_FLAG_LEFTSIDE, a
     jp nz, _is_rightworker    
@@ -104,7 +97,6 @@ _nextworker:
     ld de, WORKER_LEN
     add ix, de
     djnz __worker_loop
-    pop hl
     pop de
     pop ix
     ret
@@ -163,11 +155,13 @@ __store_machine_speed_mask:
     ret
 
 ; input: ix: address to the worker
-;        de: vram destination
 ; modifies ALL registers
 _update_lworker_image:
     push hl
     push bc
+    push de
+    ld e, (ix+WORKER_VRAM_ADDR)
+    ld d, (ix+WORKER_VRAM_ADDR+1)
     push de
     bit WORKER_FLAG_FRAME_MACH, (ix+WORKER_FLAGS) ;update machine
     jp z, __set_frame2_lworker_mach
@@ -186,8 +180,7 @@ __set_frame2_lworker_head
     ld hl, LWORKER_FRAME2_TILES+2
 __worker_copy:
     ld bc, 2
-    pop de
-    push de
+    pop de	; get back worker vram address    
     inc de ; head offset +2
     inc de
     call BIOS_LDIRVM
@@ -200,6 +193,8 @@ _update_rworker_image:
     push hl
     push bc
     push de
+    ld e, (ix+WORKER_VRAM_ADDR)
+    ld d, (ix+WORKER_VRAM_ADDR+1)
     push de
     bit WORKER_FLAG_FRAME_HEAD, (ix+WORKER_FLAGS) ;update head
     jp z, __set_frame2_rworker_head
@@ -218,7 +213,7 @@ __set_frame2_rworker_mach:
     ld hl, RWORKER_FRAME2_TILES+2
 __rworker_copy:
     ld bc, 2
-    pop de
+    pop de		; get back worker vram address
     inc de ; machine offset +2
     inc de
     call BIOS_LDIRVM
@@ -317,7 +312,6 @@ R_SHIRTS_BOX: equ 69
 ; if the worker step is 0 (it means it reached hurry)
 ; increases number of shirts and redraw the shirts box frame
 ; input:	ix: worker address
-;	de: worker vram address
 increase_shirts:
 	ld a, (ix+WORKER_STEP)		; if frame != 0, return
 	cp 0
@@ -325,14 +319,16 @@ increase_shirts:
 	ld a, (ix+WORKER_SHIRTS)	; if max shirts reached, return
 	cp MAX_WORKER_SHIRTS
 	ret z
-	push bc
-	push hl
-	push de
-	push de ; push twice to exchange value with hl
-	pop hl
 	inc a
+	ld (ix+WORKER_SHIRTS), a	
+	; micro-optimization.  executes draw_shirts_frame function
+
+; input: ix: worker address
+draw_shirts_frame:
+	push bc		; destination tile offset
+	push hl		; base worker vram address
+	push de
 	ld b, 0
-	ld (ix+WORKER_SHIRTS), a
 	bit WORKER_FLAG_LEFTSIDE, (ix+WORKER_FLAGS)
 	jp nz, .isright
 	ld c, 32		; worker vram address + 32 (next row)
@@ -340,7 +336,9 @@ increase_shirts:
 	jp .drawframe
 .isright:	ld c, 35		; worker vram address + 34 (next column+3 rows)
 	ld d, R_SHIRTS_BOX	; base pattern number
-.drawframe:	add hl, bc
+.drawframe: ld l, (ix+WORKER_VRAM_ADDR)
+	ld h, (ix+WORKER_VRAM_ADDR+1)
+	add hl, bc
 	; frame num: 1 + (shirts / max_shirts) * (frames-1)
 	; the number of slas must be updated if max shirts or box frames change
 	;dec a	; decrementing the frame number to not overpass the frame
