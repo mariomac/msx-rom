@@ -64,7 +64,10 @@ _draw:	push hl
 	srl a
 	srl a
 	res 0, a		; clears bit 0. Equivalent to divide and multiply by 2
-	add a, TILES_TOP
+	cp 6
+	jp c, .add
+	ld a, 6
+.add:	add a, TILES_TOP
 	push af
 	call BIOS_WRTVRM
 	pop af
@@ -105,6 +108,7 @@ _on_emptying:
 	ret
 
 _on_seeking:
+	jp .seek_wrkr
 	; if the wagon is full, returns to door
 	ld a, (wagon_shirts)
 	cp MAX_WORKER_SHIRTS
