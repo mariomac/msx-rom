@@ -11,6 +11,7 @@ STATUS_EMPTYING:	equ 0
 STATUS_SEEKING:	equ 1
 STATUS_MOVING:	equ 2
 STATUS_COLLECTING:	equ 3
+STATUS_RETURNING:	equ 4
 
 MAX_SHIRTS: 	equ 128
 
@@ -42,8 +43,12 @@ _update:	ld a, (wagon_status)
 	call _on_moving
 	ret
 .collecting: cp STATUS_COLLECTING
-	ret nz		; if status is inconsistent, wagon will block
+	jp nz, .returning		
 	call _on_collecting 
+	ret
+.returning:	cp STATUS_RETURNING
+	ret nz		; if status is inconsistent, wagon will block
+	call _on_returning
 	ret
 
 _draw:	push hl
@@ -184,6 +189,9 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	ld a, (wagon_dest_worker_ptr)	; wagon_dest_worker_ptr == null?
 	cp 0
 	jp nz, .iscollect
+	;ld a, (wagon_shirts)		; if wagon is full, don't seek
+	;cp MAX_SHIRTS
+	;jp z, .move_step
 	ld a, STATUS_SEEKING
 	ld (wagon_status), a
 	pop hl
@@ -213,30 +221,12 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	jp c, .mv_right
 	dec a		; update position to move LEFT
 	ld (wagon_x), a
-	ld hl, [wagon_vram_addr] ; update vram and trail vram
-	dec hl
-	ld [wagon_vram_addr], hl
-	inc hl
-	inc hl
-	ld [wagon_trl_vram_addr_1], hl
-	push de
-	ld de, 32
-	add hl, de
-	ld [wagon_trl_vram_addr_2], hl
-	pop de
+	call _update_vram_left
 	pop hl
 	ret
 .mv_right:	inc a		; update position
 	ld (wagon_x), a	
-	ld hl, [wagon_vram_addr]	; update vram and trail vram
-	ld [wagon_trl_vram_addr_1], hl
-	inc hl
-	ld [wagon_vram_addr], hl
-	push de
-	ld de, 31
-	add hl, de
-	ld [wagon_trl_vram_addr_2], hl
-	pop de
+	call _update_vram_right
 	pop hl
 	ret
 .mv_vert:	; move up or down
@@ -247,6 +237,18 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	jp c, .mv_down
 	dec a			; update position
 	ld (wagon_y), a
+	call _update_vram_up
+	pop hl
+	ret
+.mv_down:	inc a			; update position
+	ld (wagon_y), a
+	call _update_vram_down
+	pop hl
+	ret
+
+; update vram and trail (going up)
+; modifies hl
+_update_vram_up:
 	ld hl, [wagon_vram_addr]	; update vram and trail
 	push de
 	ld de, -32
@@ -258,10 +260,41 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	inc hl
 	ld [wagon_trl_vram_addr_2], hl
 	pop de
-	pop hl
 	ret
-.mv_down:	inc a			; update position
-	ld (wagon_y), a
+
+; update vram and trail (going left)
+; modifies hl
+_update_vram_left:
+	ld hl, [wagon_vram_addr] ; update vram and trail vram
+	dec hl
+	ld [wagon_vram_addr], hl
+	inc hl
+	inc hl
+	ld [wagon_trl_vram_addr_1], hl
+	push de
+	ld de, 32
+	add hl, de
+	ld [wagon_trl_vram_addr_2], hl
+	pop de
+	ret
+
+; update vram and trail (going right)
+; modifies hl
+_update_vram_right:
+	ld hl, [wagon_vram_addr]	; update vram and trail vram
+	ld [wagon_trl_vram_addr_1], hl
+	inc hl
+	ld [wagon_vram_addr], hl
+	push de
+	ld de, 31
+	add hl, de
+	ld [wagon_trl_vram_addr_2], hl
+	pop de
+	ret
+
+; update vram and trail (going down)
+; modifies hl
+_update_vram_down:
 	ld hl, [wagon_vram_addr]	; update vram and trail
 	ld [wagon_trl_vram_addr_1], hl
 	inc hl
@@ -270,20 +303,17 @@ _on_moving: push hl ; if wagon reached destination, goes to the next state
 	ld de, 31
 	add hl, de
 	ld [wagon_vram_addr], hl
-	pop hl
+	pop de
 	ret
 
 _on_collecting:
 	ld a, (wagon_shirts)
 	cp MAX_SHIRTS
 	jp nz, .chk_shrts
-	; max shirts reached. Return home (first step up)
-	ld a, (wagon_y)
-	sub 2
-	ld (wagon_dest_y), a
+	; max shirts reached. Return home
 	xor a			; dest_worker = null
 	ld (wagon_dest_worker_ptr), a
-	ld a, STATUS_MOVING
+	ld a, STATUS_RETURNING
 	ld (wagon_status), a
 	ret
 .chk_shrts:	push ix
@@ -307,6 +337,47 @@ _on_collecting:
 	inc a
 	ld (wagon_shirts), a	
 	pop ix
+	ret
+
+; Algorithm: go top, then center, then enter the door
+_on_returning:
+	ld a, (wagon_y) ; h: wagon_y, l: wagon_x (contiguous positions)
+	cp DOOR_Y+2
+	jp z, .center
+	jp c, .enter
+	dec a
+	ld (wagon_y), a
+	push hl
+	call _update_vram_up
+	pop hl
+	ret
+.center:	ld a, (wagon_x)
+	cp DOOR_X
+	jp z, .enter
+	jp c, .right
+	dec a
+	ld (wagon_x), a
+	push hl
+	call _update_vram_left
+	pop hl
+	ret
+.right:	inc a
+	ld (wagon_x), a
+	push hl
+	call _update_vram_right
+	pop hl
+	ret
+.enter:	ld a, (wagon_y)
+	cp DOOR_Y
+	jp z, .is_in
+	dec a
+	ld (wagon_y), a	; if y != door_y go up
+	push hl
+	call _update_vram_up
+	pop hl
+	ret
+.is_in:	ld a, STATUS_EMPTYING
+	ld (wagon_status), a
 	ret
 
 	ENDMODULE
