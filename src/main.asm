@@ -1,25 +1,30 @@
     include "rom/header.asm"
     include "bios.inc"
-    include "math.asm"
-    include "graphics.asm"
-    include "amancio.asm"
-    include "worker.asm"
-    include "wagon.asm"
     include "vars.asm"
+    include "psg.asm"
+    
+    
 
+;----- program start -----
 main:
-    xor a
-    ld (ADDR_CLIKSW), a ; disable keyboard click
-    call init_vars
-    call init_graphics
+        ; set channel A as tone and B as noise
+	channelSet 0b101110
+        
+        VolA 0xF
+        VolB 0xE
 
-.loop:
-    halt
-    call refresh_graphics    
-    call update_amancio_status
-    call update_workers
-    call wagon.Update
+        LD      A,0             ;Set Fine Tune Channel A
+        LD      E,0FEH          ;Data 0FEH
+        CALL    BIOS_WRTPSG
 
-    jp .loop
+        LD      A,1             ;Set Coarse Tune Channel A
+        LD      E,0             ;Data 0H
+        CALL    BIOS_WRTPSG
+
+        ld a, 6
+        ld e, 0xff
+        CALL    BIOS_WRTPSG
+
+stuff:  jp stuff
 
     include "rom/tail.asm"

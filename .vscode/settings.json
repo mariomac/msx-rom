@@ -7,7 +7,7 @@
     "z80-instruction-set.enableHovering": true,
     "[z80-macroasm]": {
         "editor.detectIndentation": false,
-        "editor.insertSpaces": false,
-        "editor.tabSize": 12,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 8,
     },
 }
