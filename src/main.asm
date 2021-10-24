@@ -8,22 +8,18 @@
 ;----- program start -----
 main:
         ; set channel A as tone and B as noise
-	channelSet 0b101110
+	channelSet 0b111110
         
-        VolA 0xF
-        VolB 0xE
+        volA 0xF
+        ;envelope        0x2FF, 0b1101
+        ;envelopeA
 
-        LD      A,0             ;Set Fine Tune Channel A
-        LD      E,0FEH          ;Data 0FEH
-        CALL    BIOS_WRTPSG
+        ld hl, 0xFFF
 
-        LD      A,1             ;Set Coarse Tune Channel A
-        LD      E,0             ;Data 0H
-        CALL    BIOS_WRTPSG
-
-        ld a, 6
-        ld e, 0xff
-        CALL    BIOS_WRTPSG
+loop:   noteA h, l
+        halt
+        dec hl
+        jp loop
 
 stuff:  jp stuff
 
